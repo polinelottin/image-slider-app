@@ -3,6 +3,9 @@ import '../vendors'
 import './web-settings'
 import gallerySource from './gallerySource'
 
+const $canvas = document.getElementById('slider')
+const ctx = $canvas.getContext('2d')
+
 const state = {
   currentIndex: 0,
   images: []
@@ -10,17 +13,15 @@ const state = {
 
 const selectAreaAndDraw = () => {
   const image = state.images[state.currentIndex]
-  const canvas = document.getElementById('slider')
-  const ctx = canvas.getContext('2d')
 
   const { width, height } = image
-  const dHeight = height >= width ? canvas.height : (height * canvas.width) / width
-  const dWidth = width >= height ? canvas.width : (width * canvas.height) / height
+  const dHeight = height >= width ? $canvas.height : (height * $canvas.width) / width
+  const dWidth = width >= height ? $canvas.width : (width * $canvas.height) / height
 
-  const dx = dWidth === canvas.width ? 0 : (canvas.width - dWidth) * 0.5
-  const dy = dHeight === canvas.height ? 0 : (canvas.height - dHeight) * 0.5
+  const dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5
+  const dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
   ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight)
 }
 
@@ -34,13 +35,29 @@ const loadImages = async () => {
   }
 }
 
+const setIndex = direction => {
+  const { currentIndex } = state
+  let newIndex = currentIndex + direction
+
+  if (newIndex === gallerySource.length) {
+    newIndex = 0
+  }
+
+  if (newIndex < 0) {
+    newIndex = gallerySource.length - 1
+  }
+
+  state.currentIndex = newIndex
+}
+
 const handleCanvasClick = event => {
-  console.log('click!', event)
+  const direction = event.layerX > $canvas.width * 0.5 ? 1 : -1
+  setIndex(direction)
+  selectAreaAndDraw()
 }
 
 const addListeners = () => {
-  const canvas = document.getElementById('slider')
-  canvas.addEventListener('click', handleCanvasClick, false)
+  $canvas.addEventListener('click', handleCanvasClick, false)
 }
 
 const start = async () => {

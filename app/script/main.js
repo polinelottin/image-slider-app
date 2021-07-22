@@ -3946,6 +3946,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+var $canvas = document.getElementById('slider');
+var ctx = $canvas.getContext('2d');
+
 var state = {
   currentIndex: 0,
   images: []
@@ -3953,19 +3956,17 @@ var state = {
 
 var selectAreaAndDraw = function selectAreaAndDraw() {
   var image = state.images[state.currentIndex];
-  var canvas = document.getElementById('slider');
-  var ctx = canvas.getContext('2d');
 
   var width = image.width,
       height = image.height;
 
-  var dHeight = height >= width ? canvas.height : height * canvas.width / width;
-  var dWidth = width >= height ? canvas.width : width * canvas.height / height;
+  var dHeight = height >= width ? $canvas.height : height * $canvas.width / width;
+  var dWidth = width >= height ? $canvas.width : width * $canvas.height / height;
 
-  var dx = dWidth === canvas.width ? 0 : (canvas.width - dWidth) * 0.5;
-  var dy = dHeight === canvas.height ? 0 : (canvas.height - dHeight) * 0.5;
+  var dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5;
+  var dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5;
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
   ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight);
 };
 
@@ -4052,13 +4053,30 @@ var loadImages = function () {
   };
 }();
 
+var setIndex = function setIndex(direction) {
+  var currentIndex = state.currentIndex;
+
+  var newIndex = currentIndex + direction;
+
+  if (newIndex === _gallerySource2.default.length) {
+    newIndex = 0;
+  }
+
+  if (newIndex < 0) {
+    newIndex = _gallerySource2.default.length - 1;
+  }
+
+  state.currentIndex = newIndex;
+};
+
 var handleCanvasClick = function handleCanvasClick(event) {
-  console.log('click!', event);
+  var direction = event.layerX > $canvas.width * 0.5 ? 1 : -1;
+  setIndex(direction);
+  selectAreaAndDraw();
 };
 
 var addListeners = function addListeners() {
-  var canvas = document.getElementById('slider');
-  canvas.addEventListener('click', handleCanvasClick, false);
+  $canvas.addEventListener('click', handleCanvasClick, false);
 };
 
 var start = function () {
