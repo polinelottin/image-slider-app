@@ -29,9 +29,8 @@ const loadImages = async () => {
   for (const source of gallerySource) {
     var img = document.createElement('img')
 
-    img.src = source
-
     try {
+      img.src = source
       await img.decode()
       state.images.push(img)
     } catch (e) {

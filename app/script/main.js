@@ -3986,66 +3986,74 @@ var loadImages = function () {
 
           case 5:
             if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-              _context.next = 15;
+              _context.next = 21;
               break;
             }
 
             source = _step.value;
             img = document.createElement('img');
-
+            _context.prev = 8;
 
             img.src = source;
-            _context.next = 11;
+            _context.next = 12;
             return img.decode();
 
-          case 11:
-            state.images.push(img);
-
           case 12:
+            state.images.push(img);
+            _context.next = 18;
+            break;
+
+          case 15:
+            _context.prev = 15;
+            _context.t0 = _context['catch'](8);
+
+            console.log(_context.t0);
+
+          case 18:
             _iteratorNormalCompletion = true;
             _context.next = 5;
             break;
 
-          case 15:
-            _context.next = 21;
+          case 21:
+            _context.next = 27;
             break;
 
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context['catch'](3);
+          case 23:
+            _context.prev = 23;
+            _context.t1 = _context['catch'](3);
             _didIteratorError = true;
-            _iteratorError = _context.t0;
+            _iteratorError = _context.t1;
 
-          case 21:
-            _context.prev = 21;
-            _context.prev = 22;
+          case 27:
+            _context.prev = 27;
+            _context.prev = 28;
 
             if (!_iteratorNormalCompletion && _iterator.return) {
               _iterator.return();
             }
 
-          case 24:
-            _context.prev = 24;
+          case 30:
+            _context.prev = 30;
 
             if (!_didIteratorError) {
-              _context.next = 27;
+              _context.next = 33;
               break;
             }
 
             throw _iteratorError;
 
-          case 27:
-            return _context.finish(24);
+          case 33:
+            return _context.finish(30);
 
-          case 28:
-            return _context.finish(21);
+          case 34:
+            return _context.finish(27);
 
-          case 29:
+          case 35:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, undefined, [[3, 17, 21, 29], [22,, 24, 28]]);
+    }, _callee, undefined, [[3, 23, 27, 35], [8, 15], [28,, 30, 34]]);
   }));
 
   return function loadImages() {
@@ -10421,6 +10429,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 var sources = ['http://challenge.publitas.com/images/0.jpg', 'http://challenge.publitas.com/images/1.jpg', 'http://challenge.publitas.com/images/2.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
 
+// https://i.ibb.co/p4dh2Rr/image.jpg
+// https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg
+// https://i.ibb.co/1KYqLFm/2.jpg
+// https://i.ibb.co/3mbgGmm/3.jpg
+// https://i.ibb.co/7gSg4XJ/1620162271375.jpg
 exports.default = sources;
 
 /***/ })
