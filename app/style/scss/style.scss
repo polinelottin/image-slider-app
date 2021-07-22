@@ -14,7 +14,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 2rem;
 }
 
 .slider_container {
@@ -32,6 +31,11 @@
   height: auto;
   display: block;
   border: 1px solid grey;
+}
+
+.canvasText {
+  margin: 0.5rem;
+  color: grey;
 }
 
 .loading {
