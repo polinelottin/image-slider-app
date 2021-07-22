@@ -6,13 +6,35 @@ import gallerySource from './gallerySource'
 const $canvas = document.getElementById('slider')
 const ctx = $canvas.getContext('2d')
 const BB = $canvas.getBoundingClientRect()
-const MIN_TO_SWITCH = BB.width * 0.2
+const MIN_TO_SWITCH = BB.width * 0.5
 
 const state = {
   currentIndex: 0,
   images: [],
   isDragging: false,
-  startX: 0
+  startX: 0,
+  currentMouseDistance: 0
+}
+
+const updateCurrentMouseDistance = currentPosition => {
+  const offsetX = BB.left
+  const mx = parseInt(currentPosition - offsetX)
+  state.currentMouseDistance = state.startX - mx
+}
+
+const setIndex = direction => {
+  const { currentIndex, images } = state
+  let newIndex = currentIndex + direction
+
+  if (newIndex === images.length) {
+    newIndex = 0
+  }
+
+  if (newIndex < 0) {
+    newIndex = images.length - 1
+  }
+
+  state.currentIndex = newIndex
 }
 
 const dimensions = {
@@ -45,16 +67,16 @@ const dimensions = {
     this.dWidth *= largestFactor
     this.dHeight *= largestFactor
 
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth)
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - state.currentMouseDistance
     this.dy = this.imageMargin(this.maxHeight, this.dHeight)
   }
 }
 
 const selectAreaAndDraw = () => {
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
+
   const image = state.images[state.currentIndex]
   dimensions.readDimensions(image).scaleToFit()
-
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
 
   const { dx, dy, dWidth, dHeight } = dimensions
   ctx.drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
@@ -78,52 +100,36 @@ const loadImages = async () => {
   }
 }
 
-const setIndex = direction => {
-  const { currentIndex, images } = state
-  let newIndex = currentIndex + direction
-
-  if (newIndex === images.length) {
-    newIndex = 0
-  }
-
-  if (newIndex < 0) {
-    newIndex = images.length - 1
-  }
-
-  state.currentIndex = newIndex
-}
-
-const currentMouseDistance = currentPosition => {
-  const offsetX = BB.left
-  const mx = parseInt(currentPosition - offsetX)
-
-  return state.startX - mx
-}
-
 const handleMouseMove = event => {
   event.preventDefault()
   event.stopPropagation()
 
   if (!state.isDragging) return
 
-  const distance = currentMouseDistance(event.clientX)
+  updateCurrentMouseDistance(event.clientX)
+  selectAreaAndDraw()
 
-  if (Math.abs(distance) > MIN_TO_SWITCH) {
-    setIndex(distance / Math.abs(distance))
+  if (Math.abs(state.currentMouseDistance) > MIN_TO_SWITCH) {
+    setIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance))
+    stopDrag()
     selectAreaAndDraw()
-    state.isDragging = false
   }
 }
 
-const onMouseDown = event => {
+const startDrag = event => {
   state.startX = event.layerX
   state.isDragging = true
 }
 
+const stopDrag = () => {
+  state.isDragging = false
+  state.currentMouseDistance = 0
+}
+
 const addListeners = () => {
   $canvas.onmousemove = handleMouseMove
-  $canvas.onmousedown = onMouseDown
-  $canvas.onmouseup = () => { state.isDragging = false }
+  $canvas.onmousedown = startDrag
+  $canvas.onmouseup = stopDrag
 }
 
 const start = async () => {

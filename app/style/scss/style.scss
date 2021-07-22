@@ -10,6 +10,10 @@
 @import "helpers/helpers";
 
 .intro_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin: 2rem;
 }
 
@@ -24,7 +28,7 @@
 
 .slider {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px;
   height: auto;
   display: block;
   border: 1px solid grey;

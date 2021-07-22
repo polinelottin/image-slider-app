@@ -3949,13 +3949,37 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 var $canvas = document.getElementById('slider');
 var ctx = $canvas.getContext('2d');
 var BB = $canvas.getBoundingClientRect();
-var MIN_TO_SWITCH = BB.width * 0.2;
+var MIN_TO_SWITCH = BB.width * 0.5;
 
 var state = {
   currentIndex: 0,
   images: [],
   isDragging: false,
-  startX: 0
+  startX: 0,
+  currentMouseDistance: 0
+};
+
+var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
+  var offsetX = BB.left;
+  var mx = parseInt(currentPosition - offsetX);
+  state.currentMouseDistance = state.startX - mx;
+};
+
+var setIndex = function setIndex(direction) {
+  var currentIndex = state.currentIndex,
+      images = state.images;
+
+  var newIndex = currentIndex + direction;
+
+  if (newIndex === images.length) {
+    newIndex = 0;
+  }
+
+  if (newIndex < 0) {
+    newIndex = images.length - 1;
+  }
+
+  state.currentIndex = newIndex;
 };
 
 var dimensions = {
@@ -3988,16 +4012,16 @@ var dimensions = {
     this.dWidth *= largestFactor;
     this.dHeight *= largestFactor;
 
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth);
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - state.currentMouseDistance;
     this.dy = this.imageMargin(this.maxHeight, this.dHeight);
   }
 };
 
 var selectAreaAndDraw = function selectAreaAndDraw() {
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+
   var image = state.images[state.currentIndex];
   dimensions.readDimensions(image).scaleToFit();
-
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
 
   var dx = dimensions.dx,
       dy = dimensions.dy,
@@ -4105,56 +4129,36 @@ var loadImages = function () {
   };
 }();
 
-var setIndex = function setIndex(direction) {
-  var currentIndex = state.currentIndex,
-      images = state.images;
-
-  var newIndex = currentIndex + direction;
-
-  if (newIndex === images.length) {
-    newIndex = 0;
-  }
-
-  if (newIndex < 0) {
-    newIndex = images.length - 1;
-  }
-
-  state.currentIndex = newIndex;
-};
-
-var currentMouseDistance = function currentMouseDistance(currentPosition) {
-  var offsetX = BB.left;
-  var mx = parseInt(currentPosition - offsetX);
-
-  return state.startX - mx;
-};
-
 var handleMouseMove = function handleMouseMove(event) {
   event.preventDefault();
   event.stopPropagation();
 
   if (!state.isDragging) return;
 
-  var distance = currentMouseDistance(event.clientX);
+  updateCurrentMouseDistance(event.clientX);
+  selectAreaAndDraw();
 
-  if (Math.abs(distance) > MIN_TO_SWITCH) {
-    setIndex(distance / Math.abs(distance));
+  if (Math.abs(state.currentMouseDistance) > MIN_TO_SWITCH) {
+    setIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance));
+    stopDrag();
     selectAreaAndDraw();
-    state.isDragging = false;
   }
 };
 
-var onMouseDown = function onMouseDown(event) {
+var startDrag = function startDrag(event) {
   state.startX = event.layerX;
   state.isDragging = true;
 };
 
+var stopDrag = function stopDrag() {
+  state.isDragging = false;
+  state.currentMouseDistance = 0;
+};
+
 var addListeners = function addListeners() {
   $canvas.onmousemove = handleMouseMove;
-  $canvas.onmousedown = onMouseDown;
-  $canvas.onmouseup = function () {
-    state.isDragging = false;
-  };
+  $canvas.onmousedown = startDrag;
+  $canvas.onmouseup = stopDrag;
 };
 
 var start = function () {
