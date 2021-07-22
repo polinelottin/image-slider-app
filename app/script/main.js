@@ -3938,9 +3938,156 @@ __webpack_require__(333);
 
 __webpack_require__(335);
 
-var start = function start() {
-  return console.log('Hello!');
+var _gallerySource = __webpack_require__(336);
+
+var _gallerySource2 = _interopRequireDefault(_gallerySource);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+var state = {
+  currentIndex: 0,
+  images: []
 };
+
+var selectAreaAndDraw = function selectAreaAndDraw() {
+  var image = state.images[state.currentIndex];
+  var canvas = document.getElementById('slider');
+  var ctx = canvas.getContext('2d');
+
+  var width = image.width,
+      height = image.height;
+
+  var dHeight = height >= width ? canvas.height : height * canvas.width / width;
+  var dWidth = width >= height ? canvas.width : width * canvas.height / height;
+
+  var dx = dWidth === canvas.width ? 0 : (canvas.width - dWidth) * 0.5;
+  var dy = dHeight === canvas.height ? 0 : (canvas.height - dHeight) * 0.5;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight);
+};
+
+var loadImages = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, img;
+
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _iteratorNormalCompletion = true;
+            _didIteratorError = false;
+            _iteratorError = undefined;
+            _context.prev = 3;
+            _iterator = _gallerySource2.default[Symbol.iterator]();
+
+          case 5:
+            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+              _context.next = 15;
+              break;
+            }
+
+            source = _step.value;
+            img = document.createElement('img');
+
+
+            img.src = source;
+            _context.next = 11;
+            return img.decode();
+
+          case 11:
+            state.images.push(img);
+
+          case 12:
+            _iteratorNormalCompletion = true;
+            _context.next = 5;
+            break;
+
+          case 15:
+            _context.next = 21;
+            break;
+
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context['catch'](3);
+            _didIteratorError = true;
+            _iteratorError = _context.t0;
+
+          case 21:
+            _context.prev = 21;
+            _context.prev = 22;
+
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+
+          case 24:
+            _context.prev = 24;
+
+            if (!_didIteratorError) {
+              _context.next = 27;
+              break;
+            }
+
+            throw _iteratorError;
+
+          case 27:
+            return _context.finish(24);
+
+          case 28:
+            return _context.finish(21);
+
+          case 29:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, undefined, [[3, 17, 21, 29], [22,, 24, 28]]);
+  }));
+
+  return function loadImages() {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var handleCanvasClick = function handleCanvasClick(event) {
+  console.log('click!', event);
+};
+
+var addListeners = function addListeners() {
+  var canvas = document.getElementById('slider');
+  canvas.addEventListener('click', handleCanvasClick, false);
+};
+
+var start = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            addListeners();
+
+            _context2.next = 3;
+            return loadImages();
+
+          case 3:
+
+            selectAreaAndDraw();
+
+          case 4:
+          case 'end':
+            return _context2.stop();
+        }
+      }
+    }, _callee2, undefined);
+  }));
+
+  return function start() {
+    return _ref2.apply(this, arguments);
+  };
+}();
 
 window.onload = function () {
   start();
@@ -10243,6 +10390,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 "use strict";
 
+
+/***/ }),
+/* 336 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var sources = ['http://challenge.publitas.com/images/0.jpg', 'http://challenge.publitas.com/images/1.jpg', 'http://challenge.publitas.com/images/2.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
+
+exports.default = sources;
 
 /***/ })
 /******/ ]);
