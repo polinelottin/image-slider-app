@@ -3954,20 +3954,53 @@ var state = {
   images: []
 };
 
+var dimensions = {
+  maxHeight: $canvas.height,
+  maxWidth: $canvas.width,
+  dWidth: 800,
+  dHeight: 600,
+  dx: 0,
+  dy: 0,
+  readDimensions: function readDimensions(image) {
+    this.dWidth = image.width;
+    this.dHeight = image.height;
+    return this;
+  },
+  largestProperty: function largestProperty() {
+    return this.dHeight > this.dWidth ? 'height' : 'width';
+  },
+  scalingFactor: function scalingFactor(original, computed) {
+    return computed / original;
+  },
+  imageMargin: function imageMargin(maxSize, imageSize) {
+    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
+  },
+  scaleToFit: function scaleToFit() {
+    var xFactor = this.scalingFactor(this.dWidth, this.maxWidth);
+    var yFactor = this.scalingFactor(this.dHeight, this.maxHeight);
+
+    var largestFactor = Math.min(xFactor, yFactor);
+
+    this.dWidth *= largestFactor;
+    this.dHeight *= largestFactor;
+
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth);
+    this.dy = this.imageMargin(this.maxHeight, this.dHeight);
+  }
+};
+
 var selectAreaAndDraw = function selectAreaAndDraw() {
   var image = state.images[state.currentIndex];
-
-  var width = image.width,
-      height = image.height;
-
-  var dHeight = height >= width ? $canvas.height : height * $canvas.width / width;
-  var dWidth = width >= height ? $canvas.width : width * $canvas.height / height;
-
-  var dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5;
-  var dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5;
+  dimensions.readDimensions(image).scaleToFit();
 
   ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-  ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight);
+
+  var dx = dimensions.dx,
+      dy = dimensions.dy,
+      dWidth = dimensions.dWidth,
+      dHeight = dimensions.dHeight;
+
+  ctx.drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
 };
 
 var loadImages = function () {
@@ -4085,8 +4118,15 @@ var setIndex = function setIndex(direction) {
   state.currentIndex = newIndex;
 };
 
+var clickedOnRightSide = function clickedOnRightSide(layerX) {
+  return layerX > $canvas.getBoundingClientRect().width * 0.5;
+};
+
 var handleCanvasClick = function handleCanvasClick(event) {
-  var direction = event.layerX > $canvas.width * 0.5 ? 1 : -1;
+  event.preventDefault();
+
+  var direction = clickedOnRightSide(event.layerX) ? 1 : -1;
+
   setIndex(direction);
   selectAreaAndDraw();
 };

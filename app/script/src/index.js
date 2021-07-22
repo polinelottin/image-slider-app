@@ -11,18 +11,49 @@ const state = {
   images: []
 }
 
+const dimensions = {
+  maxHeight: $canvas.height,
+  maxWidth: $canvas.width,
+  dWidth: 800,
+  dHeight: 600,
+  dx: 0,
+  dy: 0,
+  readDimensions: function(image) {
+    this.dWidth = image.width
+    this.dHeight = image.height
+    return this
+  },
+  largestProperty: function () {
+    return this.dHeight > this.dWidth ? 'height' : 'width'
+  },
+  scalingFactor: function(original, computed) {
+    return computed / original
+  },
+  imageMargin: function(maxSize, imageSize) {
+    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0
+  },
+  scaleToFit: function() {
+    const xFactor = this.scalingFactor(this.dWidth, this.maxWidth)
+    const yFactor = this.scalingFactor(this.dHeight, this.maxHeight)
+
+    const largestFactor = Math.min(xFactor, yFactor)
+
+    this.dWidth *= largestFactor
+    this.dHeight *= largestFactor
+
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth)
+    this.dy = this.imageMargin(this.maxHeight, this.dHeight)
+  }
+}
+
 const selectAreaAndDraw = () => {
   const image = state.images[state.currentIndex]
-
-  const { width, height } = image
-  const dHeight = height >= width ? $canvas.height : (height * $canvas.width) / width
-  const dWidth = width >= height ? $canvas.width : (width * $canvas.height) / height
-
-  const dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5
-  const dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5
+  dimensions.readDimensions(image).scaleToFit()
 
   ctx.clearRect(0, 0, $canvas.width, $canvas.height)
-  ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight)
+
+  const { dx, dy, dWidth, dHeight } = dimensions
+  ctx.drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
 }
 
 const loadImages = async () => {
@@ -30,7 +61,7 @@ const loadImages = async () => {
     const allowedImages = /^https:.*.jpg$/
 
     if (source.match(allowedImages)) {
-      var img = document.createElement('img')
+      const img = document.createElement('img')
 
       try {
         img.src = source
@@ -58,8 +89,15 @@ const setIndex = direction => {
   state.currentIndex = newIndex
 }
 
+const clickedOnRightSide = (layerX) => (
+  layerX > ($canvas.getBoundingClientRect().width * 0.5)
+)
+
 const handleCanvasClick = event => {
-  const direction = event.layerX > $canvas.width * 0.5 ? 1 : -1
+  event.preventDefault()
+
+  const direction = clickedOnRightSide(event.layerX) ? 1 : -1
+
   setIndex(direction)
   selectAreaAndDraw()
 }
