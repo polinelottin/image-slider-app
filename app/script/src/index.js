@@ -5,10 +5,14 @@ import gallerySource from './gallerySource'
 
 const $canvas = document.getElementById('slider')
 const ctx = $canvas.getContext('2d')
+const BB = $canvas.getBoundingClientRect()
+const MIN_TO_SWITCH = BB.width * 0.2
 
 const state = {
   currentIndex: 0,
-  images: []
+  images: [],
+  isDragging: false,
+  startX: 0
 }
 
 const dimensions = {
@@ -89,21 +93,37 @@ const setIndex = direction => {
   state.currentIndex = newIndex
 }
 
-const clickedOnRightSide = (layerX) => (
-  layerX > ($canvas.getBoundingClientRect().width * 0.5)
-)
+const currentMouseDistance = currentPosition => {
+  const offsetX = BB.left
+  const mx = parseInt(currentPosition - offsetX)
 
-const handleCanvasClick = event => {
+  return state.startX - mx
+}
+
+const handleMouseMove = event => {
   event.preventDefault()
+  event.stopPropagation()
 
-  const direction = clickedOnRightSide(event.layerX) ? 1 : -1
+  if (!state.isDragging) return
 
-  setIndex(direction)
-  selectAreaAndDraw()
+  const distance = currentMouseDistance(event.clientX)
+
+  if (Math.abs(distance) > MIN_TO_SWITCH) {
+    setIndex(distance / Math.abs(distance))
+    selectAreaAndDraw()
+    state.isDragging = false
+  }
+}
+
+const onMouseDown = event => {
+  state.startX = event.layerX
+  state.isDragging = true
 }
 
 const addListeners = () => {
-  $canvas.addEventListener('click', handleCanvasClick, false)
+  $canvas.onmousemove = handleMouseMove
+  $canvas.onmousedown = onMouseDown
+  $canvas.onmouseup = () => { state.isDragging = false }
 }
 
 const start = async () => {
