@@ -3955,44 +3955,52 @@ var state = {
 };
 
 var dimensions = {
-  max_height: $canvas.height,
-  max_width: $canvas.width,
-  width: 800,
-  height: 600,
+  maxHeight: $canvas.height,
+  maxWidth: $canvas.width,
+  dWidth: 800,
+  dHeight: 600,
   dx: 0,
   dy: 0,
   readDimensions: function readDimensions(image) {
-    this.width = image.width;
-    this.height = image.height;
+    this.dWidth = image.width;
+    this.dHeight = image.height;
     return this;
   },
   largestProperty: function largestProperty() {
-    return this.height > this.width ? 'height' : 'width';
+    return this.dHeight > this.dWidth ? 'height' : 'width';
   },
   scalingFactor: function scalingFactor(original, computed) {
     return computed / original;
   },
+  imageMargin: function imageMargin(maxSize, imageSize) {
+    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
+  },
   scaleToFit: function scaleToFit() {
-    var xFactor = this.scalingFactor(this.width, this.max_width);
-    var yFactor = this.scalingFactor(this.height, this.max_height);
+    var xFactor = this.scalingFactor(this.dWidth, this.maxWidth);
+    var yFactor = this.scalingFactor(this.dHeight, this.maxHeight);
 
     var largestFactor = Math.min(xFactor, yFactor);
 
-    this.width *= largestFactor;
-    this.height *= largestFactor;
+    this.dWidth *= largestFactor;
+    this.dHeight *= largestFactor;
 
-    this.dx = this.width < this.max_width ? (this.max_width - this.width) * 0.5 : 0;
-    this.dy = this.height < this.max_height ? (this.max_height - this.height) * 0.5 : 0;
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth);
+    this.dy = this.imageMargin(this.maxHeight, this.dHeight);
   }
 };
 
 var selectAreaAndDraw = function selectAreaAndDraw() {
   var image = state.images[state.currentIndex];
-
   dimensions.readDimensions(image).scaleToFit();
 
   ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-  ctx.drawImage(image, 0, 0, image.width, image.height, dimensions.dx, dimensions.dy, dimensions.width, dimensions.height);
+
+  var dx = dimensions.dx,
+      dy = dimensions.dy,
+      dWidth = dimensions.dWidth,
+      dHeight = dimensions.dHeight;
+
+  ctx.drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
 };
 
 var loadImages = function () {
@@ -4110,9 +4118,15 @@ var setIndex = function setIndex(direction) {
   state.currentIndex = newIndex;
 };
 
+var clickedOnRightSide = function clickedOnRightSide(layerX) {
+  return layerX > $canvas.getBoundingClientRect().width * 0.5;
+};
+
 var handleCanvasClick = function handleCanvasClick(event) {
   event.preventDefault();
-  var direction = event.layerX > $canvas.getBoundingClientRect().width * 0.5 ? 1 : -1;
+
+  var direction = clickedOnRightSide(event.layerX) ? 1 : -1;
+
   setIndex(direction);
   selectAreaAndDraw();
 };
