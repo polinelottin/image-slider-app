@@ -4,9 +4,12 @@ import './web-settings'
 import gallerySource from './gallerySource'
 
 const $canvas = document.getElementById('slider')
-const ctx = $canvas.getContext('2d')
 const BB = $canvas.getBoundingClientRect()
+var WIDTH = $canvas.width
+var HEIGHT = $canvas.height
 const MIN_TO_SWITCH = BB.width * 0.5
+
+const getContext = () => document.getElementById('slider').getContext('2d')
 
 const state = {
   currentIndex: 0,
@@ -22,24 +25,9 @@ const updateCurrentMouseDistance = currentPosition => {
   state.currentMouseDistance = state.startX - mx
 }
 
-const setIndex = direction => {
-  const { currentIndex, images } = state
-  let newIndex = currentIndex + direction
-
-  if (newIndex === images.length) {
-    newIndex = 0
-  }
-
-  if (newIndex < 0) {
-    newIndex = images.length - 1
-  }
-
-  state.currentIndex = newIndex
-}
-
 const dimensions = {
-  maxHeight: $canvas.height,
-  maxWidth: $canvas.width,
+  maxHeight: HEIGHT,
+  maxWidth: WIDTH,
   dWidth: 800,
   dHeight: 600,
   dx: 0,
@@ -72,14 +60,38 @@ const dimensions = {
   }
 }
 
+const getNextIndex = direction => {
+  const { currentIndex, images } = state
+  let newIndex = currentIndex + direction
+
+  if (newIndex === images.length) {
+    return 0
+  }
+
+  if (newIndex < 0) {
+    return images.length - 1
+  }
+
+  return newIndex
+}
+
 const selectAreaAndDraw = () => {
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
+  getContext().clearRect(0, 0, WIDTH, HEIGHT)
 
   const image = state.images[state.currentIndex]
   dimensions.readDimensions(image).scaleToFit()
 
   const { dx, dy, dWidth, dHeight } = dimensions
-  ctx.drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
+  getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
+
+  if (state.currentMouseDistance !== 0) {
+    const nextIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance))
+    const nextImage = state.images[nextIndex]
+
+    dimensions.readDimensions(nextImage).scaleToFit()
+    const dww = WIDTH - state.currentMouseDistance
+    getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight)
+  }
 }
 
 const loadImages = async () => {
@@ -110,7 +122,7 @@ const handleMouseMove = event => {
   selectAreaAndDraw()
 
   if (Math.abs(state.currentMouseDistance) > MIN_TO_SWITCH) {
-    setIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance))
+    state.currentIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance))
     stopDrag()
     selectAreaAndDraw()
   }
