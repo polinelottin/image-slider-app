@@ -3946,7 +3946,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var $sliderContainer = document.getElementById('slider_container');
 var $canvas = document.getElementById('slider');
 var ctx = $canvas.getContext('2d');
 
@@ -3956,14 +3955,19 @@ var state = {
 };
 
 var dimensions = {
-  max_height: $sliderContainer.getBoundingClientRect().height,
-  max_width: $sliderContainer.getBoundingClientRect().width,
-  width: 600,
-  height: 400,
+  max_height: $canvas.height,
+  max_width: $canvas.width,
+  width: 800,
+  height: 600,
+  dx: 0,
+  dy: 0,
   readDimensions: function readDimensions(image) {
     this.width = image.width;
     this.height = image.height;
     return this;
+  },
+  largestProperty: function largestProperty() {
+    return this.height > this.width ? 'height' : 'width';
   },
   scalingFactor: function scalingFactor(original, computed) {
     return computed / original;
@@ -3976,6 +3980,9 @@ var dimensions = {
 
     this.width *= largestFactor;
     this.height *= largestFactor;
+
+    this.dx = this.width < this.max_width ? (this.max_width - this.width) * 0.5 : 0;
+    this.dy = this.height < this.max_height ? (this.max_height - this.height) * 0.5 : 0;
   }
 };
 
@@ -3984,11 +3991,8 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
 
   dimensions.readDimensions(image).scaleToFit();
 
-  $canvas.width = dimensions.width;
-  $canvas.height = dimensions.height;
-
-  ctx.clearRect(0, 0, $canvas.getBoundingClientRect().width, $canvas.getBoundingClientRect().height);
-  ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height);
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+  ctx.drawImage(image, 0, 0, image.width, image.height, dimensions.dx, dimensions.dy, dimensions.width, dimensions.height);
 };
 
 var loadImages = function () {

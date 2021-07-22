@@ -3,7 +3,6 @@ import '../vendors'
 import './web-settings'
 import gallerySource from './gallerySource'
 
-const $sliderContainer = document.getElementById('slider_container')
 const $canvas = document.getElementById('slider')
 const ctx = $canvas.getContext('2d')
 
@@ -13,14 +12,19 @@ const state = {
 }
 
 const dimensions = {
-  max_height: $sliderContainer.getBoundingClientRect().height,
-  max_width: $sliderContainer.getBoundingClientRect().width,
-  width: 600,
-  height: 400,
+  max_height: $canvas.height,
+  max_width: $canvas.width,
+  width: 800,
+  height: 600,
+  dx: 0,
+  dy: 0,
   readDimensions: function(image) {
     this.width = image.width
     this.height = image.height
     return this
+  },
+  largestProperty: function () {
+    return this.height > this.width ? 'height' : 'width'
   },
   scalingFactor: function(original, computed) {
     return computed / original
@@ -33,6 +37,9 @@ const dimensions = {
 
     this.width *= largestFactor
     this.height *= largestFactor
+
+    this.dx = this.width < this.max_width ? (this.max_width - this.width) * 0.5 : 0
+    this.dy = this.height < this.max_height ? (this.max_height - this.height) * 0.5 : 0
   }
 }
 
@@ -41,11 +48,8 @@ const selectAreaAndDraw = () => {
 
   dimensions.readDimensions(image).scaleToFit()
 
-  $canvas.width = dimensions.width
-  $canvas.height = dimensions.height
-
-  ctx.clearRect(0, 0, $canvas.getBoundingClientRect().width, $canvas.getBoundingClientRect().height)
-  ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height)
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
+  ctx.drawImage(image, 0, 0, image.width, image.height, dimensions.dx, dimensions.dy, dimensions.width, dimensions.height)
 }
 
 const loadImages = async () => {
