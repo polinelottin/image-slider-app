@@ -8,7 +8,8 @@ const ctx = $canvas.getContext('2d')
 
 const state = {
   currentIndex: 0,
-  images: []
+  images: [],
+  isDragging: false
 }
 
 const dimensions = {
@@ -95,6 +96,7 @@ const clickedOnRightSide = (layerX) => (
 
 const handleCanvasClick = event => {
   event.preventDefault()
+  event.stopPropagation()
 
   const direction = clickedOnRightSide(event.layerX) ? 1 : -1
 
@@ -102,8 +104,27 @@ const handleCanvasClick = event => {
   selectAreaAndDraw()
 }
 
+const handleMouseMove = event => {
+  event.preventDefault()
+  event.stopPropagation()
+
+  if (!state.isDragging) return
+
+  var BB = $canvas.getBoundingClientRect()
+  var offsetX = BB.left
+  var offsetY = BB.top
+
+  var mx = parseInt(event.clientX - offsetX)
+  var my = parseInt(event.clientY - offsetY)
+
+  console.log(mx, my)
+}
+
 const addListeners = () => {
   $canvas.addEventListener('click', handleCanvasClick, false)
+  $canvas.onmousemove = handleMouseMove
+  $canvas.onmousedown = () => { state.isDragging = true }
+  $canvas.onmouseup = () => { state.isDragging = false }
 }
 
 const start = async () => {

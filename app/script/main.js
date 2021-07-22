@@ -3951,7 +3951,8 @@ var ctx = $canvas.getContext('2d');
 
 var state = {
   currentIndex: 0,
-  images: []
+  images: [],
+  isDragging: false
 };
 
 var dimensions = {
@@ -4124,6 +4125,7 @@ var clickedOnRightSide = function clickedOnRightSide(layerX) {
 
 var handleCanvasClick = function handleCanvasClick(event) {
   event.preventDefault();
+  event.stopPropagation();
 
   var direction = clickedOnRightSide(event.layerX) ? 1 : -1;
 
@@ -4131,8 +4133,31 @@ var handleCanvasClick = function handleCanvasClick(event) {
   selectAreaAndDraw();
 };
 
+var handleMouseMove = function handleMouseMove(event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (!state.isDragging) return;
+
+  var BB = $canvas.getBoundingClientRect();
+  var offsetX = BB.left;
+  var offsetY = BB.top;
+
+  var mx = parseInt(event.clientX - offsetX);
+  var my = parseInt(event.clientY - offsetY);
+
+  console.log(mx, my);
+};
+
 var addListeners = function addListeners() {
   $canvas.addEventListener('click', handleCanvasClick, false);
+  $canvas.onmousemove = handleMouseMove;
+  $canvas.onmousedown = function () {
+    state.isDragging = true;
+  };
+  $canvas.onmouseup = function () {
+    state.isDragging = false;
+  };
 };
 
 var start = function () {
