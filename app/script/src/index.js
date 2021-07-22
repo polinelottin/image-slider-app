@@ -9,7 +9,8 @@ const ctx = $canvas.getContext('2d')
 const state = {
   currentIndex: 0,
   images: [],
-  isDragging: false
+  isDragging: false,
+  startX: 0
 }
 
 const dimensions = {
@@ -90,20 +91,6 @@ const setIndex = direction => {
   state.currentIndex = newIndex
 }
 
-const clickedOnRightSide = (layerX) => (
-  layerX > ($canvas.getBoundingClientRect().width * 0.5)
-)
-
-const handleCanvasClick = event => {
-  event.preventDefault()
-  event.stopPropagation()
-
-  const direction = clickedOnRightSide(event.layerX) ? 1 : -1
-
-  setIndex(direction)
-  selectAreaAndDraw()
-}
-
 const handleMouseMove = event => {
   event.preventDefault()
   event.stopPropagation()
@@ -112,18 +99,25 @@ const handleMouseMove = event => {
 
   var BB = $canvas.getBoundingClientRect()
   var offsetX = BB.left
-  var offsetY = BB.top
 
   var mx = parseInt(event.clientX - offsetX)
-  var my = parseInt(event.clientY - offsetY)
 
-  console.log(mx, my)
+  const distance = state.startX - mx
+  if (Math.abs(distance) > 100) {
+    setIndex(distance / Math.abs(distance))
+    selectAreaAndDraw()
+    state.isDragging = false
+  }
+}
+
+const onMouseDown = event => {
+  state.startX = event.layerX
+  state.isDragging = true
 }
 
 const addListeners = () => {
-  $canvas.addEventListener('click', handleCanvasClick, false)
   $canvas.onmousemove = handleMouseMove
-  $canvas.onmousedown = () => { state.isDragging = true }
+  $canvas.onmousedown = onMouseDown
   $canvas.onmouseup = () => { state.isDragging = false }
 }
 

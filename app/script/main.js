@@ -3952,7 +3952,8 @@ var ctx = $canvas.getContext('2d');
 var state = {
   currentIndex: 0,
   images: [],
-  isDragging: false
+  isDragging: false,
+  startX: 0
 };
 
 var dimensions = {
@@ -4119,20 +4120,6 @@ var setIndex = function setIndex(direction) {
   state.currentIndex = newIndex;
 };
 
-var clickedOnRightSide = function clickedOnRightSide(layerX) {
-  return layerX > $canvas.getBoundingClientRect().width * 0.5;
-};
-
-var handleCanvasClick = function handleCanvasClick(event) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  var direction = clickedOnRightSide(event.layerX) ? 1 : -1;
-
-  setIndex(direction);
-  selectAreaAndDraw();
-};
-
 var handleMouseMove = function handleMouseMove(event) {
   event.preventDefault();
   event.stopPropagation();
@@ -4141,20 +4128,25 @@ var handleMouseMove = function handleMouseMove(event) {
 
   var BB = $canvas.getBoundingClientRect();
   var offsetX = BB.left;
-  var offsetY = BB.top;
 
   var mx = parseInt(event.clientX - offsetX);
-  var my = parseInt(event.clientY - offsetY);
 
-  console.log(mx, my);
+  var distance = state.startX - mx;
+  if (Math.abs(distance) > 100) {
+    setIndex(distance / Math.abs(distance));
+    selectAreaAndDraw();
+    state.isDragging = false;
+  }
+};
+
+var onMouseDown = function onMouseDown(event) {
+  state.startX = event.layerX;
+  state.isDragging = true;
 };
 
 var addListeners = function addListeners() {
-  $canvas.addEventListener('click', handleCanvasClick, false);
   $canvas.onmousemove = handleMouseMove;
-  $canvas.onmousedown = function () {
-    state.isDragging = true;
-  };
+  $canvas.onmousedown = onMouseDown;
   $canvas.onmouseup = function () {
     state.isDragging = false;
   };
