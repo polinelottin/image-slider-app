@@ -5,6 +5,8 @@ import gallerySource from './gallerySource'
 
 const $canvas = document.getElementById('slider')
 const ctx = $canvas.getContext('2d')
+const BB = $canvas.getBoundingClientRect()
+const MIN_TO_SWITCH = BB.width * 0.2
 
 const state = {
   currentIndex: 0,
@@ -91,19 +93,22 @@ const setIndex = direction => {
   state.currentIndex = newIndex
 }
 
+const currentMouseDistance = currentPosition => {
+  const offsetX = BB.left
+  const mx = parseInt(currentPosition - offsetX)
+
+  return state.startX - mx
+}
+
 const handleMouseMove = event => {
   event.preventDefault()
   event.stopPropagation()
 
   if (!state.isDragging) return
 
-  var BB = $canvas.getBoundingClientRect()
-  var offsetX = BB.left
+  const distance = currentMouseDistance(event.clientX)
 
-  var mx = parseInt(event.clientX - offsetX)
-
-  const distance = state.startX - mx
-  if (Math.abs(distance) > 100) {
+  if (Math.abs(distance) > MIN_TO_SWITCH) {
     setIndex(distance / Math.abs(distance))
     selectAreaAndDraw()
     state.isDragging = false

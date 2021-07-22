@@ -3948,6 +3948,8 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var $canvas = document.getElementById('slider');
 var ctx = $canvas.getContext('2d');
+var BB = $canvas.getBoundingClientRect();
+var MIN_TO_SWITCH = BB.width * 0.2;
 
 var state = {
   currentIndex: 0,
@@ -4120,19 +4122,22 @@ var setIndex = function setIndex(direction) {
   state.currentIndex = newIndex;
 };
 
+var currentMouseDistance = function currentMouseDistance(currentPosition) {
+  var offsetX = BB.left;
+  var mx = parseInt(currentPosition - offsetX);
+
+  return state.startX - mx;
+};
+
 var handleMouseMove = function handleMouseMove(event) {
   event.preventDefault();
   event.stopPropagation();
 
   if (!state.isDragging) return;
 
-  var BB = $canvas.getBoundingClientRect();
-  var offsetX = BB.left;
+  var distance = currentMouseDistance(event.clientX);
 
-  var mx = parseInt(event.clientX - offsetX);
-
-  var distance = state.startX - mx;
-  if (Math.abs(distance) > 100) {
+  if (Math.abs(distance) > MIN_TO_SWITCH) {
     setIndex(distance / Math.abs(distance));
     selectAreaAndDraw();
     state.isDragging = false;
