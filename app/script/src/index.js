@@ -112,7 +112,7 @@ const loadImages = async () => {
   }
 }
 
-const handleMouseMove = event => {
+const handleMove = event => {
   event.preventDefault()
   event.stopPropagation()
 
@@ -139,9 +139,12 @@ const stopDrag = () => {
 }
 
 const addListeners = () => {
-  $canvas.onmousemove = handleMouseMove
+  $canvas.onmousemove = handleMove
+  $canvas.ontouchmove = handleMove
   $canvas.onmousedown = startDrag
+  $canvas.ontouchstart = startDrag
   $canvas.onmouseup = stopDrag
+  $canvas.ontouchend = stopDrag
 }
 
 const start = async () => {

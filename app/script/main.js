@@ -4143,7 +4143,7 @@ var loadImages = function () {
   };
 }();
 
-var handleMouseMove = function handleMouseMove(event) {
+var handleMove = function handleMove(event) {
   event.preventDefault();
   event.stopPropagation();
 
@@ -4170,9 +4170,12 @@ var stopDrag = function stopDrag() {
 };
 
 var addListeners = function addListeners() {
-  $canvas.onmousemove = handleMouseMove;
+  $canvas.onmousemove = handleMove;
+  $canvas.ontouchmove = handleMove;
   $canvas.onmousedown = startDrag;
+  $canvas.ontouchstart = startDrag;
   $canvas.onmouseup = stopDrag;
+  $canvas.ontouchend = stopDrag;
 };
 
 var start = function () {
