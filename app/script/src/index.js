@@ -3,6 +3,7 @@ import '../vendors'
 import './web-settings'
 import gallerySource from './gallerySource'
 
+const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
 const ctx = $canvas.getContext('2d')
 const BB = $canvas.getBoundingClientRect()
@@ -127,11 +128,14 @@ const addListeners = () => {
 }
 
 const start = async () => {
+  $loading.style.display = 'block'
+
   addListeners()
 
   await loadImages()
 
   selectAreaAndDraw()
+  $loading.style.display = 'none'
 }
 
 window.onload = function () {

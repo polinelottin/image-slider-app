@@ -3946,6 +3946,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
 var ctx = $canvas.getContext('2d');
 var BB = $canvas.getBoundingClientRect();
@@ -4163,16 +4164,19 @@ var start = function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
+            $loading.style.display = 'block';
+
             addListeners();
 
-            _context2.next = 3;
+            _context2.next = 4;
             return loadImages();
 
-          case 3:
+          case 4:
 
             selectAreaAndDraw();
+            $loading.style.display = 'none';
 
-          case 4:
+          case 6:
           case 'end':
             return _context2.stop();
         }
