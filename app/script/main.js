@@ -3938,9 +3938,190 @@ __webpack_require__(333);
 
 __webpack_require__(335);
 
-var start = function start() {
-  return console.log('Hello!');
+var _gallerySource = __webpack_require__(336);
+
+var _gallerySource2 = _interopRequireDefault(_gallerySource);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+var $canvas = document.getElementById('slider');
+var ctx = $canvas.getContext('2d');
+
+var state = {
+  currentIndex: 0,
+  images: []
 };
+
+var selectAreaAndDraw = function selectAreaAndDraw() {
+  var image = state.images[state.currentIndex];
+
+  var width = image.width,
+      height = image.height;
+
+  var dHeight = height >= width ? $canvas.height : height * $canvas.width / width;
+  var dWidth = width >= height ? $canvas.width : width * $canvas.height / height;
+
+  var dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5;
+  var dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5;
+
+  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
+  ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight);
+};
+
+var loadImages = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, allowedImages, img;
+
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _iteratorNormalCompletion = true;
+            _didIteratorError = false;
+            _iteratorError = undefined;
+            _context.prev = 3;
+            _iterator = _gallerySource2.default[Symbol.iterator]();
+
+          case 5:
+            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+              _context.next = 23;
+              break;
+            }
+
+            source = _step.value;
+            allowedImages = /^https:.*.jpg$/;
+
+            if (!source.match(allowedImages)) {
+              _context.next = 20;
+              break;
+            }
+
+            img = document.createElement('img');
+            _context.prev = 10;
+
+            img.src = source;
+            _context.next = 14;
+            return img.decode();
+
+          case 14:
+            state.images.push(img);
+            _context.next = 20;
+            break;
+
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context['catch'](10);
+
+            console.log(_context.t0);
+
+          case 20:
+            _iteratorNormalCompletion = true;
+            _context.next = 5;
+            break;
+
+          case 23:
+            _context.next = 29;
+            break;
+
+          case 25:
+            _context.prev = 25;
+            _context.t1 = _context['catch'](3);
+            _didIteratorError = true;
+            _iteratorError = _context.t1;
+
+          case 29:
+            _context.prev = 29;
+            _context.prev = 30;
+
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+
+          case 32:
+            _context.prev = 32;
+
+            if (!_didIteratorError) {
+              _context.next = 35;
+              break;
+            }
+
+            throw _iteratorError;
+
+          case 35:
+            return _context.finish(32);
+
+          case 36:
+            return _context.finish(29);
+
+          case 37:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, undefined, [[3, 25, 29, 37], [10, 17], [30,, 32, 36]]);
+  }));
+
+  return function loadImages() {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+var setIndex = function setIndex(direction) {
+  var currentIndex = state.currentIndex,
+      images = state.images;
+
+  var newIndex = currentIndex + direction;
+
+  if (newIndex === images.length) {
+    newIndex = 0;
+  }
+
+  if (newIndex < 0) {
+    newIndex = images.length - 1;
+  }
+
+  state.currentIndex = newIndex;
+};
+
+var handleCanvasClick = function handleCanvasClick(event) {
+  var direction = event.layerX > $canvas.width * 0.5 ? 1 : -1;
+  setIndex(direction);
+  selectAreaAndDraw();
+};
+
+var addListeners = function addListeners() {
+  $canvas.addEventListener('click', handleCanvasClick, false);
+};
+
+var start = function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            addListeners();
+
+            _context2.next = 3;
+            return loadImages();
+
+          case 3:
+
+            selectAreaAndDraw();
+
+          case 4:
+          case 'end':
+            return _context2.stop();
+        }
+      }
+    }, _callee2, undefined);
+  }));
+
+  return function start() {
+    return _ref2.apply(this, arguments);
+  };
+}();
 
 window.onload = function () {
   start();
@@ -10243,6 +10424,20 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 "use strict";
 
+
+/***/ }),
+/* 336 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
+
+exports.default = sources;
 
 /***/ })
 /******/ ]);
