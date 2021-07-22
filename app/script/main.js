@@ -3946,6 +3946,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+var $sliderContainer = document.getElementById('slider_container');
 var $canvas = document.getElementById('slider');
 var ctx = $canvas.getContext('2d');
 
@@ -3954,20 +3955,40 @@ var state = {
   images: []
 };
 
+var dimensions = {
+  max_height: $sliderContainer.getBoundingClientRect().height,
+  max_width: $sliderContainer.getBoundingClientRect().width,
+  width: 600,
+  height: 400,
+  readDimensions: function readDimensions(image) {
+    this.width = image.width;
+    this.height = image.height;
+    return this;
+  },
+  scalingFactor: function scalingFactor(original, computed) {
+    return computed / original;
+  },
+  scaleToFit: function scaleToFit() {
+    var xFactor = this.scalingFactor(this.width, this.max_width);
+    var yFactor = this.scalingFactor(this.height, this.max_height);
+
+    var largestFactor = Math.min(xFactor, yFactor);
+
+    this.width *= largestFactor;
+    this.height *= largestFactor;
+  }
+};
+
 var selectAreaAndDraw = function selectAreaAndDraw() {
   var image = state.images[state.currentIndex];
 
-  var width = image.width,
-      height = image.height;
+  dimensions.readDimensions(image).scaleToFit();
 
-  var dHeight = height >= width ? $canvas.height : height * $canvas.width / width;
-  var dWidth = width >= height ? $canvas.width : width * $canvas.height / height;
+  $canvas.width = dimensions.width;
+  $canvas.height = dimensions.height;
 
-  var dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5;
-  var dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5;
-
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
-  ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight);
+  ctx.clearRect(0, 0, $canvas.getBoundingClientRect().width, $canvas.getBoundingClientRect().height);
+  ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height);
 };
 
 var loadImages = function () {
@@ -4086,7 +4107,8 @@ var setIndex = function setIndex(direction) {
 };
 
 var handleCanvasClick = function handleCanvasClick(event) {
-  var direction = event.layerX > $canvas.width * 0.5 ? 1 : -1;
+  event.preventDefault();
+  var direction = event.layerX > $canvas.getBoundingClientRect().width * 0.5 ? 1 : -1;
   setIndex(direction);
   selectAreaAndDraw();
 };

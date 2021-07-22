@@ -3,6 +3,7 @@ import '../vendors'
 import './web-settings'
 import gallerySource from './gallerySource'
 
+const $sliderContainer = document.getElementById('slider_container')
 const $canvas = document.getElementById('slider')
 const ctx = $canvas.getContext('2d')
 
@@ -11,18 +12,40 @@ const state = {
   images: []
 }
 
+const dimensions = {
+  max_height: $sliderContainer.getBoundingClientRect().height,
+  max_width: $sliderContainer.getBoundingClientRect().width,
+  width: 600,
+  height: 400,
+  readDimensions: function(image) {
+    this.width = image.width
+    this.height = image.height
+    return this
+  },
+  scalingFactor: function(original, computed) {
+    return computed / original
+  },
+  scaleToFit: function() {
+    const xFactor = this.scalingFactor(this.width, this.max_width)
+    const yFactor = this.scalingFactor(this.height, this.max_height)
+
+    const largestFactor = Math.min(xFactor, yFactor)
+
+    this.width *= largestFactor
+    this.height *= largestFactor
+  }
+}
+
 const selectAreaAndDraw = () => {
   const image = state.images[state.currentIndex]
 
-  const { width, height } = image
-  const dHeight = height >= width ? $canvas.height : (height * $canvas.width) / width
-  const dWidth = width >= height ? $canvas.width : (width * $canvas.height) / height
+  dimensions.readDimensions(image).scaleToFit()
 
-  const dx = dWidth === $canvas.width ? 0 : ($canvas.width - dWidth) * 0.5
-  const dy = dHeight === $canvas.height ? 0 : ($canvas.height - dHeight) * 0.5
+  $canvas.width = dimensions.width
+  $canvas.height = dimensions.height
 
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height)
-  ctx.drawImage(image, 0, 0, width, height, dx, dy, dWidth, dHeight)
+  ctx.clearRect(0, 0, $canvas.getBoundingClientRect().width, $canvas.getBoundingClientRect().height)
+  ctx.drawImage(image, 0, 0, dimensions.width, dimensions.height)
 }
 
 const loadImages = async () => {
@@ -30,7 +53,7 @@ const loadImages = async () => {
     const allowedImages = /^https:.*.jpg$/
 
     if (source.match(allowedImages)) {
-      var img = document.createElement('img')
+      const img = document.createElement('img')
 
       try {
         img.src = source
@@ -59,7 +82,8 @@ const setIndex = direction => {
 }
 
 const handleCanvasClick = event => {
-  const direction = event.layerX > $canvas.width * 0.5 ? 1 : -1
+  event.preventDefault()
+  const direction = event.layerX > $canvas.getBoundingClientRect().width * 0.5 ? 1 : -1
   setIndex(direction)
   selectAreaAndDraw()
 }
