@@ -30,8 +30,13 @@ const loadImages = async () => {
     var img = document.createElement('img')
 
     img.src = source
-    await img.decode()
-    state.images.push(img)
+
+    try {
+      await img.decode()
+      state.images.push(img)
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 
