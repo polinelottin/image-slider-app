@@ -10427,13 +10427,8 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var sources = ['http://challenge.publitas.com/images/0.jpg', 'http://challenge.publitas.com/images/1.jpg', 'http://challenge.publitas.com/images/2.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
+var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
 
-// https://i.ibb.co/p4dh2Rr/image.jpg
-// https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg
-// https://i.ibb.co/1KYqLFm/2.jpg
-// https://i.ibb.co/3mbgGmm/3.jpg
-// https://i.ibb.co/7gSg4XJ/1620162271375.jpg
 exports.default = sources;
 
 /***/ })
