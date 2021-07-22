@@ -3972,7 +3972,7 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
 
 var loadImages = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, img;
+    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, allowedImages, img;
 
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
@@ -3986,74 +3986,81 @@ var loadImages = function () {
 
           case 5:
             if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-              _context.next = 21;
+              _context.next = 23;
               break;
             }
 
             source = _step.value;
+            allowedImages = /^https:.*.jpg$/;
+
+            if (!source.match(allowedImages)) {
+              _context.next = 20;
+              break;
+            }
+
             img = document.createElement('img');
-            _context.prev = 8;
+            _context.prev = 10;
 
             img.src = source;
-            _context.next = 12;
+            _context.next = 14;
             return img.decode();
 
-          case 12:
+          case 14:
             state.images.push(img);
-            _context.next = 18;
+            _context.next = 20;
             break;
 
-          case 15:
-            _context.prev = 15;
-            _context.t0 = _context['catch'](8);
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context['catch'](10);
 
             console.log(_context.t0);
 
-          case 18:
+          case 20:
             _iteratorNormalCompletion = true;
             _context.next = 5;
             break;
 
-          case 21:
-            _context.next = 27;
+          case 23:
+            _context.next = 29;
             break;
 
-          case 23:
-            _context.prev = 23;
+          case 25:
+            _context.prev = 25;
             _context.t1 = _context['catch'](3);
             _didIteratorError = true;
             _iteratorError = _context.t1;
 
-          case 27:
-            _context.prev = 27;
-            _context.prev = 28;
+          case 29:
+            _context.prev = 29;
+            _context.prev = 30;
 
             if (!_iteratorNormalCompletion && _iterator.return) {
               _iterator.return();
             }
 
-          case 30:
-            _context.prev = 30;
+          case 32:
+            _context.prev = 32;
 
             if (!_didIteratorError) {
-              _context.next = 33;
+              _context.next = 35;
               break;
             }
 
             throw _iteratorError;
 
-          case 33:
-            return _context.finish(30);
-
-          case 34:
-            return _context.finish(27);
-
           case 35:
+            return _context.finish(32);
+
+          case 36:
+            return _context.finish(29);
+
+          case 37:
           case 'end':
             return _context.stop();
         }
       }
-    }, _callee, undefined, [[3, 23, 27, 35], [8, 15], [28,, 30, 34]]);
+    }, _callee, undefined, [[3, 25, 29, 37], [10, 17], [30,, 32, 36]]);
   }));
 
   return function loadImages() {
@@ -4062,16 +4069,17 @@ var loadImages = function () {
 }();
 
 var setIndex = function setIndex(direction) {
-  var currentIndex = state.currentIndex;
+  var currentIndex = state.currentIndex,
+      images = state.images;
 
   var newIndex = currentIndex + direction;
 
-  if (newIndex === _gallerySource2.default.length) {
+  if (newIndex === images.length) {
     newIndex = 0;
   }
 
   if (newIndex < 0) {
-    newIndex = _gallerySource2.default.length - 1;
+    newIndex = images.length - 1;
   }
 
   state.currentIndex = newIndex;

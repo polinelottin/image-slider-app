@@ -27,28 +27,32 @@ const selectAreaAndDraw = () => {
 
 const loadImages = async () => {
   for (const source of gallerySource) {
-    var img = document.createElement('img')
+    const allowedImages = /^https:.*.jpg$/
 
-    try {
-      img.src = source
-      await img.decode()
-      state.images.push(img)
-    } catch (e) {
-      console.log(e)
+    if (source.match(allowedImages)) {
+      var img = document.createElement('img')
+
+      try {
+        img.src = source
+        await img.decode()
+        state.images.push(img)
+      } catch (e) {
+        console.log(e)
+      }
     }
   }
 }
 
 const setIndex = direction => {
-  const { currentIndex } = state
+  const { currentIndex, images } = state
   let newIndex = currentIndex + direction
 
-  if (newIndex === gallerySource.length) {
+  if (newIndex === images.length) {
     newIndex = 0
   }
 
   if (newIndex < 0) {
-    newIndex = gallerySource.length - 1
+    newIndex = images.length - 1
   }
 
   state.currentIndex = newIndex
