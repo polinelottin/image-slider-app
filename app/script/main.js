@@ -4206,7 +4206,6 @@ var start = function () {
           case 0:
             $loading.style.display = 'block';
 
-            console.log('aqui');
             addListeners();
             (0, _state.setState)({
               currentIndex: 0,
@@ -4216,17 +4215,15 @@ var start = function () {
               currentMouseDistance: 0
             });
 
-            console.log('aqui2');
-
-            _context2.next = 7;
+            _context2.next = 5;
             return loadImages();
 
-          case 7:
+          case 5:
 
             selectAreaAndDraw();
             $loading.style.display = 'none';
 
-          case 9:
+          case 7:
           case 'end':
             return _context2.stop();
         }

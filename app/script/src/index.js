@@ -168,7 +168,6 @@ const addListeners = () => {
 const start = async () => {
   $loading.style.display = 'block'
 
-  console.log('aqui')
   addListeners()
   setState({
     currentIndex: 0,
@@ -177,8 +176,6 @@ const start = async () => {
     startX: 0,
     currentMouseDistance: 0
   })
-
-  console.log('aqui2')
 
   await loadImages()
 
