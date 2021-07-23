@@ -3938,13 +3938,11 @@ __webpack_require__(131);
 
 __webpack_require__(333);
 
-__webpack_require__(335);
-
-var _gallerySource = __webpack_require__(336);
+var _gallerySource = __webpack_require__(335);
 
 var _gallerySource2 = _interopRequireDefault(_gallerySource);
 
-var _state = __webpack_require__(337);
+var _state = __webpack_require__(336);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -10538,13 +10536,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 "use strict";
 
 
-/***/ }),
-/* 336 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -10553,7 +10544,7 @@ var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C
 exports.default = sources;
 
 /***/ }),
-/* 337 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

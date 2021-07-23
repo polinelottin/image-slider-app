@@ -1,13 +1,8 @@
-@import "variables/variables";
 @import "base/normalize";
-@import "base/grid-system";
-@import "base/web-font";
-@import "plugins/plugins";
-@import "mixin/mixin";
-@import "components/components";
-@import 'form/form';
-@import "layouts/layouts";
-@import "helpers/helpers";
+
+h1 {
+  color: rgb(40, 177, 234);
+}
 
 h1 {
   color: rgb(40, 177, 234);
@@ -18,7 +13,6 @@ h1 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  margin: 2rem;
 }
 
 .slider_container {
