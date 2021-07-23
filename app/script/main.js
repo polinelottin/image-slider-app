@@ -3944,6 +3944,10 @@ var _gallerySource2 = _interopRequireDefault(_gallerySource);
 
 var _state = __webpack_require__(336);
 
+var _canvasDimensions = __webpack_require__(337);
+
+var _canvasDimensions2 = _interopRequireDefault(_canvasDimensions);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -3970,41 +3974,6 @@ var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosi
   }));
 };
 
-var dimensions = {
-  maxHeight: HEIGHT,
-  maxWidth: WIDTH,
-  dWidth: 800,
-  dHeight: 600,
-  dx: 0,
-  dy: 0,
-  readDimensions: function readDimensions(image) {
-    this.dWidth = image.width;
-    this.dHeight = image.height;
-    return this;
-  },
-  largestProperty: function largestProperty() {
-    return this.dHeight > this.dWidth ? 'height' : 'width';
-  },
-  scalingFactor: function scalingFactor(original, computed) {
-    return computed / original;
-  },
-  imageMargin: function imageMargin(maxSize, imageSize) {
-    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
-  },
-  scaleToFit: function scaleToFit() {
-    var xFactor = this.scalingFactor(this.dWidth, this.maxWidth);
-    var yFactor = this.scalingFactor(this.dHeight, this.maxHeight);
-
-    var largestFactor = Math.min(xFactor, yFactor);
-
-    this.dWidth *= largestFactor;
-    this.dHeight *= largestFactor;
-
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - _state.state.currentMouseDistance;
-    this.dy = this.imageMargin(this.maxHeight, this.dHeight);
-  }
-};
-
 var getNextIndex = function getNextIndex(direction) {
   var currentIndex = _state.state.currentIndex,
       images = _state.state.images;
@@ -4029,11 +3998,11 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
 
   var image = images[currentIndex];
 
-  dimensions.readDimensions(image).scaleToFit();
-  var dx = dimensions.dx,
-      dy = dimensions.dy,
-      dWidth = dimensions.dWidth,
-      dHeight = dimensions.dHeight;
+  _canvasDimensions2.default.readDimensions(image, _state.state).scaleToFit();
+  var dx = _canvasDimensions2.default.dx,
+      dy = _canvasDimensions2.default.dy,
+      dWidth = _canvasDimensions2.default.dWidth,
+      dHeight = _canvasDimensions2.default.dHeight;
 
 
   getContext().clearRect(0, 0, WIDTH, HEIGHT);
@@ -4043,7 +4012,7 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
     var nextIndex = getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance));
     var nextImage = images[nextIndex];
 
-    dimensions.readDimensions(nextImage).scaleToFit();
+    _canvasDimensions2.default.readDimensions(nextImage, _state.state).scaleToFit();
     var dww = WIDTH - currentMouseDistance;
     getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight);
   }
@@ -10561,6 +10530,59 @@ var setState = function setState(newState) {
 
 exports.state = state;
 exports.setState = setState;
+
+/***/ }),
+/* 337 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var $canvas = document.getElementById('slider');
+var WIDTH = $canvas.width;
+var HEIGHT = $canvas.height;
+
+var dimensions = {
+  maxHeight: HEIGHT,
+  maxWidth: WIDTH,
+  dWidth: 800,
+  dHeight: 600,
+  dx: 0,
+  dy: 0,
+  state: {},
+  readDimensions: function readDimensions(image, state) {
+    this.dWidth = image.width;
+    this.dHeight = image.height;
+    this.state = state;
+    return this;
+  },
+  largestProperty: function largestProperty() {
+    return this.dHeight > this.dWidth ? 'height' : 'width';
+  },
+  scalingFactor: function scalingFactor(original, computed) {
+    return computed / original;
+  },
+  imageMargin: function imageMargin(maxSize, imageSize) {
+    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
+  },
+  scaleToFit: function scaleToFit() {
+    var xFactor = this.scalingFactor(this.dWidth, this.maxWidth);
+    var yFactor = this.scalingFactor(this.dHeight, this.maxHeight);
+
+    var largestFactor = Math.min(xFactor, yFactor);
+
+    this.dWidth *= largestFactor;
+    this.dHeight *= largestFactor;
+
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - this.state.currentMouseDistance;
+    this.dy = this.imageMargin(this.maxHeight, this.dHeight);
+  }
+};
+
+exports.default = dimensions;
 
 /***/ })
 /******/ ]);
