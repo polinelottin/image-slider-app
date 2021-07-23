@@ -2,6 +2,7 @@ import 'babel-polyfill'
 import '../vendors'
 import './web-settings'
 import gallerySource from './gallerySource'
+import { state, setState } from './state'
 
 const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
@@ -12,18 +13,14 @@ const MIN_TO_SWITCH = BB.width * 0.5
 
 const getContext = () => document.getElementById('slider').getContext('2d')
 
-const state = {
-  currentIndex: 0,
-  images: [],
-  isDragging: false,
-  startX: 0,
-  currentMouseDistance: 0
-}
-
 const updateCurrentMouseDistance = currentPosition => {
   const offsetX = BB.left
   const mx = parseInt(currentPosition - offsetX)
-  state.currentMouseDistance = state.startX - mx
+
+  setState({
+    ...state,
+    currentMouseDistance: state.startX - mx
+  })
 }
 
 const dimensions = {
@@ -77,20 +74,21 @@ const getNextIndex = direction => {
 }
 
 const selectAreaAndDraw = () => {
-  getContext().clearRect(0, 0, WIDTH, HEIGHT)
+  const { images, currentIndex, currentMouseDistance } = state
+  const image = images[currentIndex]
 
-  const image = state.images[state.currentIndex]
   dimensions.readDimensions(image).scaleToFit()
-
   const { dx, dy, dWidth, dHeight } = dimensions
+
+  getContext().clearRect(0, 0, WIDTH, HEIGHT)
   getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
 
-  if (state.currentMouseDistance !== 0) {
-    const nextIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance))
-    const nextImage = state.images[nextIndex]
+  if (currentMouseDistance !== 0) {
+    const nextIndex = getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
+    const nextImage = images[nextIndex]
 
     dimensions.readDimensions(nextImage).scaleToFit()
-    const dww = WIDTH - state.currentMouseDistance
+    const dww = WIDTH - currentMouseDistance
     getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight)
   }
 }
@@ -105,7 +103,14 @@ const loadImages = async () => {
       try {
         img.src = source
         await img.decode()
-        state.images.push(img)
+
+        setState({
+          ...state,
+          images: [
+            ...state.images,
+            img
+          ]
+        })
       } catch (e) {
         console.log(e)
       }
@@ -117,26 +122,38 @@ const handleMove = event => {
   event.preventDefault()
   event.stopPropagation()
 
-  if (!state.isDragging) return
+  const { isDragging, currentMouseDistance } = state
 
-  updateCurrentMouseDistance(event.clientX)
-  selectAreaAndDraw()
-
-  if (Math.abs(state.currentMouseDistance) > MIN_TO_SWITCH) {
-    state.currentIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance))
-    stopDrag()
+  if (isDragging) {
+    updateCurrentMouseDistance(event.clientX)
     selectAreaAndDraw()
+
+    if (Math.abs(currentMouseDistance) > MIN_TO_SWITCH) {
+      setState({
+        ...state,
+        currentIndex: getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
+      })
+
+      stopDrag()
+      selectAreaAndDraw()
+    }
   }
 }
 
 const startDrag = event => {
-  state.startX = event.layerX
-  state.isDragging = true
+  setState({
+    ...state,
+    startX: event.layerX,
+    isDragging: true
+  })
 }
 
 const stopDrag = () => {
-  state.isDragging = false
-  state.currentMouseDistance = 0
+  setState({
+    ...state,
+    isDragging: false,
+    currentMouseDistance: 0
+  })
 }
 
 const addListeners = () => {
@@ -152,6 +169,13 @@ const start = async () => {
   $loading.style.display = 'block'
 
   addListeners()
+  setState({
+    currentIndex: 0,
+    images: [],
+    isDragging: false,
+    startX: 0,
+    currentMouseDistance: 0
+  })
 
   await loadImages()
 

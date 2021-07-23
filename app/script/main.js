@@ -3932,6 +3932,8 @@ module.exports = Math.scale || function scale(x, inLow, inHigh, outLow, outHigh)
 "use strict";
 
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 __webpack_require__(131);
 
 __webpack_require__(333);
@@ -3942,7 +3944,11 @@ var _gallerySource = __webpack_require__(336);
 
 var _gallerySource2 = _interopRequireDefault(_gallerySource);
 
+var _state = __webpack_require__(337);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -3957,18 +3963,13 @@ var getContext = function getContext() {
   return document.getElementById('slider').getContext('2d');
 };
 
-var state = {
-  currentIndex: 0,
-  images: [],
-  isDragging: false,
-  startX: 0,
-  currentMouseDistance: 0
-};
-
 var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
   var offsetX = BB.left;
   var mx = parseInt(currentPosition - offsetX);
-  state.currentMouseDistance = state.startX - mx;
+
+  (0, _state.setState)(_extends({}, _state.state, {
+    currentMouseDistance: _state.state.startX - mx
+  }));
 };
 
 var dimensions = {
@@ -4001,14 +4002,14 @@ var dimensions = {
     this.dWidth *= largestFactor;
     this.dHeight *= largestFactor;
 
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - state.currentMouseDistance;
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - _state.state.currentMouseDistance;
     this.dy = this.imageMargin(this.maxHeight, this.dHeight);
   }
 };
 
 var getNextIndex = function getNextIndex(direction) {
-  var currentIndex = state.currentIndex,
-      images = state.images;
+  var currentIndex = _state.state.currentIndex,
+      images = _state.state.images;
 
   var newIndex = currentIndex + direction;
 
@@ -4024,24 +4025,28 @@ var getNextIndex = function getNextIndex(direction) {
 };
 
 var selectAreaAndDraw = function selectAreaAndDraw() {
-  getContext().clearRect(0, 0, WIDTH, HEIGHT);
+  var images = _state.state.images,
+      currentIndex = _state.state.currentIndex,
+      currentMouseDistance = _state.state.currentMouseDistance;
 
-  var image = state.images[state.currentIndex];
+  var image = images[currentIndex];
+
   dimensions.readDimensions(image).scaleToFit();
-
   var dx = dimensions.dx,
       dy = dimensions.dy,
       dWidth = dimensions.dWidth,
       dHeight = dimensions.dHeight;
 
+
+  getContext().clearRect(0, 0, WIDTH, HEIGHT);
   getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
 
-  if (state.currentMouseDistance !== 0) {
-    var nextIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance));
-    var nextImage = state.images[nextIndex];
+  if (currentMouseDistance !== 0) {
+    var nextIndex = getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance));
+    var nextImage = images[nextIndex];
 
     dimensions.readDimensions(nextImage).scaleToFit();
-    var dww = WIDTH - state.currentMouseDistance;
+    var dww = WIDTH - currentMouseDistance;
     getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight);
   }
 };
@@ -4082,7 +4087,10 @@ var loadImages = function () {
             return img.decode();
 
           case 14:
-            state.images.push(img);
+
+            (0, _state.setState)(_extends({}, _state.state, {
+              images: [].concat(_toConsumableArray(_state.state.images), [img])
+            }));
             _context.next = 20;
             break;
 
@@ -4148,26 +4156,37 @@ var handleMove = function handleMove(event) {
   event.preventDefault();
   event.stopPropagation();
 
-  if (!state.isDragging) return;
+  var isDragging = _state.state.isDragging,
+      currentMouseDistance = _state.state.currentMouseDistance;
 
-  updateCurrentMouseDistance(event.clientX);
-  selectAreaAndDraw();
 
-  if (Math.abs(state.currentMouseDistance) > MIN_TO_SWITCH) {
-    state.currentIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance));
-    stopDrag();
+  if (isDragging) {
+    updateCurrentMouseDistance(event.clientX);
     selectAreaAndDraw();
+
+    if (Math.abs(currentMouseDistance) > MIN_TO_SWITCH) {
+      (0, _state.setState)(_extends({}, _state.state, {
+        currentIndex: getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
+      }));
+
+      stopDrag();
+      selectAreaAndDraw();
+    }
   }
 };
 
 var startDrag = function startDrag(event) {
-  state.startX = event.layerX;
-  state.isDragging = true;
+  (0, _state.setState)(_extends({}, _state.state, {
+    startX: event.layerX,
+    isDragging: true
+  }));
 };
 
 var stopDrag = function stopDrag() {
-  state.isDragging = false;
-  state.currentMouseDistance = 0;
+  (0, _state.setState)(_extends({}, _state.state, {
+    isDragging: false,
+    currentMouseDistance: 0
+  }));
 };
 
 var addListeners = function addListeners() {
@@ -4188,16 +4207,23 @@ var start = function () {
             $loading.style.display = 'block';
 
             addListeners();
+            (0, _state.setState)({
+              currentIndex: 0,
+              images: [],
+              isDragging: false,
+              startX: 0,
+              currentMouseDistance: 0
+            });
 
-            _context2.next = 4;
+            _context2.next = 5;
             return loadImages();
 
-          case 4:
+          case 5:
 
             selectAreaAndDraw();
             $loading.style.display = 'none';
 
-          case 6:
+          case 7:
           case 'end':
             return _context2.stop();
         }
@@ -10525,6 +10551,25 @@ Object.defineProperty(exports, "__esModule", {
 var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
 
 exports.default = sources;
+
+/***/ }),
+/* 337 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var state = {};
+
+var setState = function setState(newState) {
+  exports.state = state = newState;
+};
+
+exports.state = state;
+exports.setState = setState;
 
 /***/ })
 /******/ ]);
