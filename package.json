@@ -4,7 +4,8 @@
   "description": "Image gallery using HTML canvas",
   "scripts": {
     "dev": "gulp",
-    "build": "gulp clean && gulp build"
+    "build": "gulp clean && gulp build",
+    "test": "yarn jest"
   },
   "resolutions": {
     "graceful-fs": "^4.2.4"
@@ -65,10 +66,14 @@
     "gulp-shell": "^0.6.3",
     "gulp-sourcemaps": "^2.6.0",
     "gulp-util": "^3.0.6",
+    "jest": "^27.0.6",
     "stylelint": "^8.2.0",
     "stylelint-config-standard": "^17.0.0",
     "stylelint-rscss": "^0.4.0",
     "webpack": "^3.6.0",
     "webpack-stream": "^4.0.0"
+  },
+  "jest": {
+    "transform": {}
   }
 }
