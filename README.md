@@ -15,7 +15,7 @@ Content
 <!--te-->
 
 ## About
-:rocket: This is an example of Image Slider usign HTML canvas.
+This is an example of Image Slider usign HTML canvas.
 
 ## Getting Started
 Required! Gulp installed `npm install -g gulp`

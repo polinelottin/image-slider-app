@@ -1,6 +1,5 @@
 import 'babel-polyfill'
 import '../vendors'
-import './web-settings'
 import gallerySource from './gallerySource'
 import { state, setState } from './state'
 
