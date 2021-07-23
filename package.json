@@ -1,7 +1,7 @@
 {
-  "name": "project-name",
+  "name": "image-slider-app",
   "version": "0.0.1",
-  "description": "Description of your project",
+  "description": "Image gallery using HTML canvas",
   "scripts": {
     "dev": "gulp",
     "build": "gulp clean && gulp build"
@@ -22,7 +22,6 @@
     "app": {
       "base": "app",
       "img": "app/images",
-      "font": "app/fonts",
       "js": "app/script",
       "jsSrc": "app/script/src",
       "jsVendor": "app/script/vendors",
