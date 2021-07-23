@@ -3948,20 +3948,32 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
-var ctx = $canvas.getContext('2d');
 var BB = $canvas.getBoundingClientRect();
-var MIN_TO_SWITCH = BB.width * 0.2;
+var WIDTH = $canvas.width;
+var HEIGHT = $canvas.height;
+var MIN_TO_SWITCH = BB.width * 0.5;
+
+var getContext = function getContext() {
+  return document.getElementById('slider').getContext('2d');
+};
 
 var state = {
   currentIndex: 0,
   images: [],
   isDragging: false,
-  startX: 0
+  startX: 0,
+  currentMouseDistance: 0
+};
+
+var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
+  var offsetX = BB.left;
+  var mx = parseInt(currentPosition - offsetX);
+  state.currentMouseDistance = state.startX - mx;
 };
 
 var dimensions = {
-  maxHeight: $canvas.height,
-  maxWidth: $canvas.width,
+  maxHeight: HEIGHT,
+  maxWidth: WIDTH,
   dWidth: 800,
   dHeight: 600,
   dx: 0,
@@ -3989,23 +4001,49 @@ var dimensions = {
     this.dWidth *= largestFactor;
     this.dHeight *= largestFactor;
 
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth);
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - state.currentMouseDistance;
     this.dy = this.imageMargin(this.maxHeight, this.dHeight);
   }
 };
 
+var getNextIndex = function getNextIndex(direction) {
+  var currentIndex = state.currentIndex,
+      images = state.images;
+
+  var newIndex = currentIndex + direction;
+
+  if (newIndex === images.length) {
+    return 0;
+  }
+
+  if (newIndex < 0) {
+    return images.length - 1;
+  }
+
+  return newIndex;
+};
+
 var selectAreaAndDraw = function selectAreaAndDraw() {
+  getContext().clearRect(0, 0, WIDTH, HEIGHT);
+
   var image = state.images[state.currentIndex];
   dimensions.readDimensions(image).scaleToFit();
-
-  ctx.clearRect(0, 0, $canvas.width, $canvas.height);
 
   var dx = dimensions.dx,
       dy = dimensions.dy,
       dWidth = dimensions.dWidth,
       dHeight = dimensions.dHeight;
 
-  ctx.drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
+  getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
+
+  if (state.currentMouseDistance !== 0) {
+    var nextIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance));
+    var nextImage = state.images[nextIndex];
+
+    dimensions.readDimensions(nextImage).scaleToFit();
+    var dww = WIDTH - state.currentMouseDistance;
+    getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight);
+  }
 };
 
 var loadImages = function () {
@@ -4106,56 +4144,39 @@ var loadImages = function () {
   };
 }();
 
-var setIndex = function setIndex(direction) {
-  var currentIndex = state.currentIndex,
-      images = state.images;
-
-  var newIndex = currentIndex + direction;
-
-  if (newIndex === images.length) {
-    newIndex = 0;
-  }
-
-  if (newIndex < 0) {
-    newIndex = images.length - 1;
-  }
-
-  state.currentIndex = newIndex;
-};
-
-var currentMouseDistance = function currentMouseDistance(currentPosition) {
-  var offsetX = BB.left;
-  var mx = parseInt(currentPosition - offsetX);
-
-  return state.startX - mx;
-};
-
-var handleMouseMove = function handleMouseMove(event) {
+var handleMove = function handleMove(event) {
   event.preventDefault();
   event.stopPropagation();
 
   if (!state.isDragging) return;
 
-  var distance = currentMouseDistance(event.clientX);
+  updateCurrentMouseDistance(event.clientX);
+  selectAreaAndDraw();
 
-  if (Math.abs(distance) > MIN_TO_SWITCH) {
-    setIndex(distance / Math.abs(distance));
+  if (Math.abs(state.currentMouseDistance) > MIN_TO_SWITCH) {
+    state.currentIndex = getNextIndex(state.currentMouseDistance / Math.abs(state.currentMouseDistance));
+    stopDrag();
     selectAreaAndDraw();
-    state.isDragging = false;
   }
 };
 
-var onMouseDown = function onMouseDown(event) {
+var startDrag = function startDrag(event) {
   state.startX = event.layerX;
   state.isDragging = true;
 };
 
+var stopDrag = function stopDrag() {
+  state.isDragging = false;
+  state.currentMouseDistance = 0;
+};
+
 var addListeners = function addListeners() {
-  $canvas.onmousemove = handleMouseMove;
-  $canvas.onmousedown = onMouseDown;
-  $canvas.onmouseup = function () {
-    state.isDragging = false;
-  };
+  $canvas.onmousemove = handleMove;
+  $canvas.ontouchmove = handleMove;
+  $canvas.onmousedown = startDrag;
+  $canvas.ontouchstart = startDrag;
+  $canvas.onmouseup = stopDrag;
+  $canvas.ontouchend = stopDrag;
 };
 
 var start = function () {
