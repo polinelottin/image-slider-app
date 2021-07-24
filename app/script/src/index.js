@@ -1,7 +1,9 @@
 import 'babel-polyfill'
 import '../vendors'
-import gallerySource from './gallerySource'
 import { state, setState } from './state'
+
+const Gallery = require('./gallery')
+var gallery = new Gallery()
 
 const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
@@ -9,6 +11,13 @@ const BB = $canvas.getBoundingClientRect()
 var WIDTH = $canvas.width
 var HEIGHT = $canvas.height
 const MIN_TO_SWITCH = BB.width * 0.5
+
+const INITIAL_STATE = {
+  currentIndex: 0,
+  isDragging: false,
+  startX: 0,
+  currentMouseDistance: 0
+}
 
 const getContext = () => document.getElementById('slider').getContext('2d')
 
@@ -57,8 +66,11 @@ const dimensions = {
   }
 }
 
-const getNextIndex = direction => {
-  const { currentIndex, images } = state
+const nextIndex = () => {
+  const { currentIndex, currentMouseDistance } = state
+  const images = gallery.images
+
+  const direction = currentMouseDistance / Math.abs(currentMouseDistance)
   let newIndex = currentIndex + direction
 
   if (newIndex === images.length) {
@@ -73,7 +85,9 @@ const getNextIndex = direction => {
 }
 
 const selectAreaAndDraw = () => {
-  const { images, currentIndex, currentMouseDistance } = state
+  const { currentIndex, currentMouseDistance } = state
+  const { images } = gallery
+
   const image = images[currentIndex]
 
   dimensions.readDimensions(image).scaleToFit()
@@ -83,8 +97,7 @@ const selectAreaAndDraw = () => {
   getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
 
   if (currentMouseDistance !== 0) {
-    const nextIndex = getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
-    const nextImage = images[nextIndex]
+    const nextImage = images[nextIndex()]
 
     dimensions.readDimensions(nextImage).scaleToFit()
     const dww = WIDTH - currentMouseDistance
@@ -92,54 +105,7 @@ const selectAreaAndDraw = () => {
   }
 }
 
-const loadImages = async () => {
-  for (const source of gallerySource) {
-    const allowedImages = /^https:.*.jpg$/
-
-    if (source.match(allowedImages)) {
-      const img = document.createElement('img')
-
-      try {
-        img.src = source
-        await img.decode()
-
-        setState({
-          ...state,
-          images: [
-            ...state.images,
-            img
-          ]
-        })
-      } catch (e) {
-        console.log(e)
-      }
-    }
-  }
-}
-
-const handleMove = event => {
-  event.preventDefault()
-  event.stopPropagation()
-
-  const { isDragging, currentMouseDistance } = state
-
-  if (isDragging) {
-    updateCurrentMouseDistance(event.clientX)
-    selectAreaAndDraw()
-
-    if (Math.abs(currentMouseDistance) > MIN_TO_SWITCH) {
-      setState({
-        ...state,
-        currentIndex: getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
-      })
-
-      stopDrag()
-      selectAreaAndDraw()
-    }
-  }
-}
-
-const startDrag = event => {
+const startDragging = event => {
   setState({
     ...state,
     startX: event.layerX,
@@ -147,7 +113,7 @@ const startDrag = event => {
   })
 }
 
-const stopDrag = () => {
+const stopDragging = () => {
   setState({
     ...state,
     isDragging: false,
@@ -155,31 +121,57 @@ const stopDrag = () => {
   })
 }
 
+const shouldSwitchImage = () => {
+  const { currentMouseDistance } = state
+  return Math.abs(currentMouseDistance) > MIN_TO_SWITCH
+}
+
+const handleMove = event => {
+  event.preventDefault()
+  event.stopPropagation()
+
+  const { isDragging } = state
+
+  if (isDragging) {
+    updateCurrentMouseDistance(event.clientX)
+    selectAreaAndDraw()
+
+    if (shouldSwitchImage()) {
+      setState({
+        ...state,
+        currentIndex: nextIndex()
+      })
+
+      stopDragging()
+      selectAreaAndDraw()
+    }
+  }
+}
+
 const addListeners = () => {
   $canvas.onmousemove = handleMove
   $canvas.ontouchmove = handleMove
-  $canvas.onmousedown = startDrag
-  $canvas.ontouchstart = startDrag
-  $canvas.onmouseup = stopDrag
-  $canvas.ontouchend = stopDrag
+
+  $canvas.onmousedown = startDragging
+  $canvas.ontouchstart = startDragging
+
+  $canvas.onmouseup = stopDragging
+  $canvas.ontouchend = stopDragging
+}
+
+const setLoading = loading => {
+  $loading.style.display = loading ? 'block' : 'none'
 }
 
 const start = async () => {
-  $loading.style.display = 'block'
-
+  setLoading(true)
   addListeners()
-  setState({
-    currentIndex: 0,
-    images: [],
-    isDragging: false,
-    startX: 0,
-    currentMouseDistance: 0
-  })
+  setState(INITIAL_STATE)
 
-  await loadImages()
+  await gallery.loadImages()
 
   selectAreaAndDraw()
-  $loading.style.display = 'none'
+  setLoading(false)
 }
 
 window.onload = function () {
