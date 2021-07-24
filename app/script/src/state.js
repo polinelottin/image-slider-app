@@ -1,10 +1,11 @@
-let state = {}
+function State(initState) {
+  let state = initState
 
-const setState = newState => {
-  state = newState
+  this.current = state
+
+  this.setState = newState => {
+    state = Object.assign(state, newState)
+  }
 }
 
-export {
-  state,
-  setState
-}
+module.exports = State

@@ -3932,18 +3932,22 @@ module.exports = Math.scale || function scale(x, inLow, inHigh, outLow, outHigh)
 "use strict";
 
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 __webpack_require__(131);
 
 __webpack_require__(333);
 
-var _state = __webpack_require__(335);
-
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-var Gallery = __webpack_require__(336);
+var Gallery = __webpack_require__(335);
+var State = __webpack_require__(337);
+
 var gallery = new Gallery();
+var state = new State({
+  currentIndex: 0,
+  isDragging: false,
+  startX: 0,
+  currentMouseDistance: 0
+});
 
 var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
@@ -3952,13 +3956,6 @@ var WIDTH = $canvas.width;
 var HEIGHT = $canvas.height;
 var MIN_TO_SWITCH = BB.width * 0.5;
 
-var INITIAL_STATE = {
-  currentIndex: 0,
-  isDragging: false,
-  startX: 0,
-  currentMouseDistance: 0
-};
-
 var getContext = function getContext() {
   return document.getElementById('slider').getContext('2d');
 };
@@ -3966,10 +3963,12 @@ var getContext = function getContext() {
 var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
   var offsetX = BB.left;
   var mx = parseInt(currentPosition - offsetX);
+  var startX = state.current.startX;
 
-  (0, _state.setState)(_extends({}, _state.state, {
-    currentMouseDistance: _state.state.startX - mx
-  }));
+
+  state.setState({
+    currentMouseDistance: startX - mx
+  });
 };
 
 var dimensions = {
@@ -4002,14 +4001,17 @@ var dimensions = {
     this.dWidth *= largestFactor;
     this.dHeight *= largestFactor;
 
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - _state.state.currentMouseDistance;
+    var currentMouseDistance = state.current.currentMouseDistance;
+
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - currentMouseDistance;
     this.dy = this.imageMargin(this.maxHeight, this.dHeight);
   }
 };
 
 var nextIndex = function nextIndex() {
-  var currentIndex = _state.state.currentIndex,
-      currentMouseDistance = _state.state.currentMouseDistance;
+  var _state$current = state.current,
+      currentIndex = _state$current.currentIndex,
+      currentMouseDistance = _state$current.currentMouseDistance;
 
   var images = gallery.images;
 
@@ -4028,8 +4030,9 @@ var nextIndex = function nextIndex() {
 };
 
 var selectAreaAndDraw = function selectAreaAndDraw() {
-  var currentIndex = _state.state.currentIndex,
-      currentMouseDistance = _state.state.currentMouseDistance;
+  var _state$current2 = state.current,
+      currentIndex = _state$current2.currentIndex,
+      currentMouseDistance = _state$current2.currentMouseDistance;
   var images = gallery.images;
 
 
@@ -4055,21 +4058,21 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
 };
 
 var startDragging = function startDragging(event) {
-  (0, _state.setState)(_extends({}, _state.state, {
+  state.setState({
     startX: event.layerX,
     isDragging: true
-  }));
+  });
 };
 
 var stopDragging = function stopDragging() {
-  (0, _state.setState)(_extends({}, _state.state, {
+  state.setState({
     isDragging: false,
     currentMouseDistance: 0
-  }));
+  });
 };
 
 var shouldSwitchImage = function shouldSwitchImage() {
-  var currentMouseDistance = _state.state.currentMouseDistance;
+  var currentMouseDistance = state.current.currentMouseDistance;
 
   return Math.abs(currentMouseDistance) > MIN_TO_SWITCH;
 };
@@ -4078,7 +4081,7 @@ var handleMove = function handleMove(event) {
   event.preventDefault();
   event.stopPropagation();
 
-  var isDragging = _state.state.isDragging;
+  var isDragging = state.current.isDragging;
 
 
   if (isDragging) {
@@ -4086,9 +4089,9 @@ var handleMove = function handleMove(event) {
     selectAreaAndDraw();
 
     if (shouldSwitchImage()) {
-      (0, _state.setState)(_extends({}, _state.state, {
+      state.setState({
         currentIndex: nextIndex()
-      }));
+      });
 
       stopDragging();
       selectAreaAndDraw();
@@ -4119,17 +4122,16 @@ var start = function () {
           case 0:
             setLoading(true);
             addListeners();
-            (0, _state.setState)(INITIAL_STATE);
 
-            _context.next = 5;
+            _context.next = 4;
             return gallery.loadImages();
 
-          case 5:
+          case 4:
 
             selectAreaAndDraw();
             setLoading(false);
 
-          case 7:
+          case 6:
           case 'end':
             return _context.stop();
         }
@@ -10444,26 +10446,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 "use strict";
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var state = {};
-
-var setState = function setState(newState) {
-  exports.state = state = newState;
-};
-
-exports.state = state;
-exports.setState = setState;
-
-/***/ }),
-/* 336 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _source = __webpack_require__(337);
+var _source = __webpack_require__(336);
 
 var _source2 = _interopRequireDefault(_source);
 
@@ -10575,7 +10558,7 @@ function Gallery() {
 module.exports = Gallery;
 
 /***/ }),
-/* 337 */
+/* 336 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10587,6 +10570,25 @@ Object.defineProperty(exports, "__esModule", {
 var source = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
 
 exports.default = source;
+
+/***/ }),
+/* 337 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function State(initState) {
+  var state = initState;
+
+  this.current = state;
+
+  this.setState = function (newState) {
+    state = Object.assign(state, newState);
+  };
+}
+
+module.exports = State;
 
 /***/ })
 /******/ ]);
