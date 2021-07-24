@@ -10463,9 +10463,13 @@ exports.setState = setState;
 "use strict";
 
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+var _source = __webpack_require__(337);
 
-var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
+var _source2 = _interopRequireDefault(_source);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 var ALLOWED_URL = /^https:.*.jpg$/;
 
@@ -10487,7 +10491,7 @@ function Gallery() {
             _didIteratorError = false;
             _iteratorError = undefined;
             _context.prev = 3;
-            _iterator = sources[Symbol.iterator]();
+            _iterator = _source2.default[Symbol.iterator]();
 
           case 5:
             if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
@@ -10569,6 +10573,20 @@ function Gallery() {
 }
 
 module.exports = Gallery;
+
+/***/ }),
+/* 337 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var source = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
+
+exports.default = source;
 
 /***/ })
 /******/ ]);
