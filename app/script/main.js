@@ -3938,11 +3938,12 @@ __webpack_require__(131);
 
 __webpack_require__(333);
 
-var _gallery = __webpack_require__(335);
-
-var _state = __webpack_require__(336);
+var _state = __webpack_require__(335);
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+var Gallery = __webpack_require__(336);
+var gallery = new Gallery();
 
 var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
@@ -3953,7 +3954,6 @@ var MIN_TO_SWITCH = BB.width * 0.5;
 
 var INITIAL_STATE = {
   currentIndex: 0,
-  images: [],
   isDragging: false,
   startX: 0,
   currentMouseDistance: 0
@@ -4009,9 +4009,9 @@ var dimensions = {
 
 var nextIndex = function nextIndex() {
   var currentIndex = _state.state.currentIndex,
-      images = _state.state.images,
       currentMouseDistance = _state.state.currentMouseDistance;
 
+  var images = gallery.images;
 
   var direction = currentMouseDistance / Math.abs(currentMouseDistance);
   var newIndex = currentIndex + direction;
@@ -4028,9 +4028,10 @@ var nextIndex = function nextIndex() {
 };
 
 var selectAreaAndDraw = function selectAreaAndDraw() {
-  var images = _state.state.images,
-      currentIndex = _state.state.currentIndex,
+  var currentIndex = _state.state.currentIndex,
       currentMouseDistance = _state.state.currentMouseDistance;
+  var images = gallery.images;
+
 
   var image = images[currentIndex];
 
@@ -4112,7 +4113,6 @@ var setLoading = function setLoading(loading) {
 
 var start = function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var images;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -4122,17 +4122,14 @@ var start = function () {
             (0, _state.setState)(INITIAL_STATE);
 
             _context.next = 5;
-            return (0, _gallery.loadImages)();
+            return gallery.loadImages();
 
           case 5:
-            images = _context.sent;
-
-            (0, _state.setState)(_extends({}, _state.state, { images: images }));
 
             selectAreaAndDraw();
             setLoading(false);
 
-          case 9:
+          case 7:
           case 'end':
             return _context.stop();
         }
@@ -10450,126 +10447,6 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
-
-var ALLOWED_IMAGES = /^https:.*.jpg$/;
-
-var loadImages = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var images, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, img;
-
-    return regeneratorRuntime.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            images = [];
-            _iteratorNormalCompletion = true;
-            _didIteratorError = false;
-            _iteratorError = undefined;
-            _context.prev = 4;
-            _iterator = sources[Symbol.iterator]();
-
-          case 6:
-            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-              _context.next = 23;
-              break;
-            }
-
-            source = _step.value;
-
-            if (!source.match(ALLOWED_IMAGES)) {
-              _context.next = 20;
-              break;
-            }
-
-            img = document.createElement('img');
-            _context.prev = 10;
-
-            img.src = source;
-            _context.next = 14;
-            return img.decode();
-
-          case 14:
-            images.push(img);
-            _context.next = 20;
-            break;
-
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context['catch'](10);
-
-            console.log(_context.t0);
-
-          case 20:
-            _iteratorNormalCompletion = true;
-            _context.next = 6;
-            break;
-
-          case 23:
-            _context.next = 29;
-            break;
-
-          case 25:
-            _context.prev = 25;
-            _context.t1 = _context['catch'](4);
-            _didIteratorError = true;
-            _iteratorError = _context.t1;
-
-          case 29:
-            _context.prev = 29;
-            _context.prev = 30;
-
-            if (!_iteratorNormalCompletion && _iterator.return) {
-              _iterator.return();
-            }
-
-          case 32:
-            _context.prev = 32;
-
-            if (!_didIteratorError) {
-              _context.next = 35;
-              break;
-            }
-
-            throw _iteratorError;
-
-          case 35:
-            return _context.finish(32);
-
-          case 36:
-            return _context.finish(29);
-
-          case 37:
-            return _context.abrupt('return', images);
-
-          case 38:
-          case 'end':
-            return _context.stop();
-        }
-      }
-    }, _callee, undefined, [[4, 25, 29, 37], [10, 17], [30,, 32, 36]]);
-  }));
-
-  return function loadImages() {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-exports.loadImages = loadImages;
-
-/***/ }),
-/* 336 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 var state = {};
 
 var setState = function setState(newState) {
@@ -10578,6 +10455,120 @@ var setState = function setState(newState) {
 
 exports.state = state;
 exports.setState = setState;
+
+/***/ }),
+/* 336 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
+
+var ALLOWED_URL = /^https:.*.jpg$/;
+
+function Gallery() {
+  var _this = this;
+
+  var loadedImages = [];
+
+  this.images = loadedImages;
+
+  this.loadImages = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, url, img;
+
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _iteratorNormalCompletion = true;
+            _didIteratorError = false;
+            _iteratorError = undefined;
+            _context.prev = 3;
+            _iterator = sources[Symbol.iterator]();
+
+          case 5:
+            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+              _context.next = 22;
+              break;
+            }
+
+            url = _step.value;
+
+            if (!url.match(ALLOWED_URL)) {
+              _context.next = 19;
+              break;
+            }
+
+            img = document.createElement('img');
+            _context.prev = 9;
+
+            img.src = url;
+            _context.next = 13;
+            return img.decode();
+
+          case 13:
+            loadedImages.push(img);
+            _context.next = 19;
+            break;
+
+          case 16:
+            _context.prev = 16;
+            _context.t0 = _context['catch'](9);
+
+            console.log(_context.t0);
+
+          case 19:
+            _iteratorNormalCompletion = true;
+            _context.next = 5;
+            break;
+
+          case 22:
+            _context.next = 28;
+            break;
+
+          case 24:
+            _context.prev = 24;
+            _context.t1 = _context['catch'](3);
+            _didIteratorError = true;
+            _iteratorError = _context.t1;
+
+          case 28:
+            _context.prev = 28;
+            _context.prev = 29;
+
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+
+          case 31:
+            _context.prev = 31;
+
+            if (!_didIteratorError) {
+              _context.next = 34;
+              break;
+            }
+
+            throw _iteratorError;
+
+          case 34:
+            return _context.finish(31);
+
+          case 35:
+            return _context.finish(28);
+
+          case 36:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, _this, [[3, 24, 28, 36], [9, 16], [29,, 31, 35]]);
+  }));
+}
+
+module.exports = Gallery;
 
 /***/ })
 /******/ ]);

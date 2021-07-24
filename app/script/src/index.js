@@ -1,7 +1,9 @@
 import 'babel-polyfill'
 import '../vendors'
-import { loadImages } from './gallery'
 import { state, setState } from './state'
+
+const Gallery = require('./gallery')
+var gallery = new Gallery()
 
 const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
@@ -12,7 +14,6 @@ const MIN_TO_SWITCH = BB.width * 0.5
 
 const INITIAL_STATE = {
   currentIndex: 0,
-  images: [],
   isDragging: false,
   startX: 0,
   currentMouseDistance: 0
@@ -66,7 +67,8 @@ const dimensions = {
 }
 
 const nextIndex = () => {
-  const { currentIndex, images, currentMouseDistance } = state
+  const { currentIndex, currentMouseDistance } = state
+  const images = gallery.images
 
   const direction = currentMouseDistance / Math.abs(currentMouseDistance)
   let newIndex = currentIndex + direction
@@ -83,7 +85,9 @@ const nextIndex = () => {
 }
 
 const selectAreaAndDraw = () => {
-  const { images, currentIndex, currentMouseDistance } = state
+  const { currentIndex, currentMouseDistance } = state
+  const { images } = gallery
+
   const image = images[currentIndex]
 
   dimensions.readDimensions(image).scaleToFit()
@@ -164,8 +168,7 @@ const start = async () => {
   addListeners()
   setState(INITIAL_STATE)
 
-  const images = await loadImages()
-  setState({ ...state, images })
+  await gallery.loadImages()
 
   selectAreaAndDraw()
   setLoading(false)

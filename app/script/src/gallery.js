@@ -8,24 +8,28 @@ const sources = [
   'https://github.com/polinelottin.png'
 ]
 
-const ALLOWED_IMAGES = /^https:.*.jpg$/
+const ALLOWED_URL = /^https:.*.jpg$/
 
-const loadImages = async () => {
-  const images = []
-  for (const source of sources) {
-    if (source.match(ALLOWED_IMAGES)) {
-      const img = document.createElement('img')
+function Gallery() {
+  const loadedImages = []
 
-      try {
-        img.src = source
-        await img.decode()
-        images.push(img)
-      } catch (e) {
-        console.log(e)
+  this.images = loadedImages
+
+  this.loadImages = async () => {
+    for (const url of sources) {
+      if (url.match(ALLOWED_URL)) {
+        const img = document.createElement('img')
+
+        try {
+          img.src = url
+          await img.decode()
+          loadedImages.push(img)
+        } catch (e) {
+          console.log(e)
+        }
       }
     }
   }
-  return images
 }
 
-export { loadImages }
+module.exports = Gallery
