@@ -4054,7 +4054,6 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
 };
 
 var startDragging = function startDragging(event) {
-  console.log('stopDragging');
   (0, _state.setState)(_extends({}, _state.state, {
     startX: event.layerX,
     isDragging: true
@@ -4062,7 +4061,6 @@ var startDragging = function startDragging(event) {
 };
 
 var stopDragging = function stopDragging() {
-  console.log('startDragging');
   (0, _state.setState)(_extends({}, _state.state, {
     isDragging: false,
     currentMouseDistance: 0

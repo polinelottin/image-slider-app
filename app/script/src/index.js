@@ -102,7 +102,6 @@ const selectAreaAndDraw = () => {
 }
 
 const startDragging = event => {
-  console.log('stopDragging')
   setState({
     ...state,
     startX: event.layerX,
@@ -111,7 +110,6 @@ const startDragging = event => {
 }
 
 const stopDragging = () => {
-  console.log('startDragging')
   setState({
     ...state,
     isDragging: false,
