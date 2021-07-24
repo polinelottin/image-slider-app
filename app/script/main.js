@@ -3938,15 +3938,9 @@ __webpack_require__(131);
 
 __webpack_require__(333);
 
-var _gallerySource = __webpack_require__(335);
-
-var _gallerySource2 = _interopRequireDefault(_gallerySource);
+var _gallery = __webpack_require__(335);
 
 var _state = __webpack_require__(336);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
@@ -3956,6 +3950,14 @@ var BB = $canvas.getBoundingClientRect();
 var WIDTH = $canvas.width;
 var HEIGHT = $canvas.height;
 var MIN_TO_SWITCH = BB.width * 0.5;
+
+var INITIAL_STATE = {
+  currentIndex: 0,
+  images: [],
+  isDragging: false,
+  startX: 0,
+  currentMouseDistance: 0
+};
 
 var getContext = function getContext() {
   return document.getElementById('slider').getContext('2d');
@@ -4005,10 +4007,13 @@ var dimensions = {
   }
 };
 
-var getNextIndex = function getNextIndex(direction) {
+var nextIndex = function nextIndex() {
   var currentIndex = _state.state.currentIndex,
-      images = _state.state.images;
+      images = _state.state.images,
+      currentMouseDistance = _state.state.currentMouseDistance;
 
+
+  var direction = currentMouseDistance / Math.abs(currentMouseDistance);
   var newIndex = currentIndex + direction;
 
   if (newIndex === images.length) {
@@ -4040,8 +4045,7 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
   getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
 
   if (currentMouseDistance !== 0) {
-    var nextIndex = getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance));
-    var nextImage = images[nextIndex];
+    var nextImage = images[nextIndex()];
 
     dimensions.readDimensions(nextImage).scaleToFit();
     var dww = WIDTH - currentMouseDistance;
@@ -4049,188 +4053,97 @@ var selectAreaAndDraw = function selectAreaAndDraw() {
   }
 };
 
-var loadImages = function () {
-  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-    var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, allowedImages, img;
-
-    return regeneratorRuntime.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            _iteratorNormalCompletion = true;
-            _didIteratorError = false;
-            _iteratorError = undefined;
-            _context.prev = 3;
-            _iterator = _gallerySource2.default[Symbol.iterator]();
-
-          case 5:
-            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-              _context.next = 23;
-              break;
-            }
-
-            source = _step.value;
-            allowedImages = /^https:.*.jpg$/;
-
-            if (!source.match(allowedImages)) {
-              _context.next = 20;
-              break;
-            }
-
-            img = document.createElement('img');
-            _context.prev = 10;
-
-            img.src = source;
-            _context.next = 14;
-            return img.decode();
-
-          case 14:
-
-            (0, _state.setState)(_extends({}, _state.state, {
-              images: [].concat(_toConsumableArray(_state.state.images), [img])
-            }));
-            _context.next = 20;
-            break;
-
-          case 17:
-            _context.prev = 17;
-            _context.t0 = _context['catch'](10);
-
-            console.log(_context.t0);
-
-          case 20:
-            _iteratorNormalCompletion = true;
-            _context.next = 5;
-            break;
-
-          case 23:
-            _context.next = 29;
-            break;
-
-          case 25:
-            _context.prev = 25;
-            _context.t1 = _context['catch'](3);
-            _didIteratorError = true;
-            _iteratorError = _context.t1;
-
-          case 29:
-            _context.prev = 29;
-            _context.prev = 30;
-
-            if (!_iteratorNormalCompletion && _iterator.return) {
-              _iterator.return();
-            }
-
-          case 32:
-            _context.prev = 32;
-
-            if (!_didIteratorError) {
-              _context.next = 35;
-              break;
-            }
-
-            throw _iteratorError;
-
-          case 35:
-            return _context.finish(32);
-
-          case 36:
-            return _context.finish(29);
-
-          case 37:
-          case 'end':
-            return _context.stop();
-        }
-      }
-    }, _callee, undefined, [[3, 25, 29, 37], [10, 17], [30,, 32, 36]]);
-  }));
-
-  return function loadImages() {
-    return _ref.apply(this, arguments);
-  };
-}();
-
-var handleMove = function handleMove(event) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  var isDragging = _state.state.isDragging,
-      currentMouseDistance = _state.state.currentMouseDistance;
-
-
-  if (isDragging) {
-    updateCurrentMouseDistance(event.clientX);
-    selectAreaAndDraw();
-
-    if (Math.abs(currentMouseDistance) > MIN_TO_SWITCH) {
-      (0, _state.setState)(_extends({}, _state.state, {
-        currentIndex: getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
-      }));
-
-      stopDrag();
-      selectAreaAndDraw();
-    }
-  }
-};
-
-var startDrag = function startDrag(event) {
+var startDragging = function startDragging(event) {
+  console.log('stopDragging');
   (0, _state.setState)(_extends({}, _state.state, {
     startX: event.layerX,
     isDragging: true
   }));
 };
 
-var stopDrag = function stopDrag() {
+var stopDragging = function stopDragging() {
+  console.log('startDragging');
   (0, _state.setState)(_extends({}, _state.state, {
     isDragging: false,
     currentMouseDistance: 0
   }));
 };
 
+var shouldSwitchImage = function shouldSwitchImage() {
+  var currentMouseDistance = _state.state.currentMouseDistance;
+
+  return Math.abs(currentMouseDistance) > MIN_TO_SWITCH;
+};
+
+var handleMove = function handleMove(event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  var isDragging = _state.state.isDragging;
+
+
+  if (isDragging) {
+    updateCurrentMouseDistance(event.clientX);
+    selectAreaAndDraw();
+
+    if (shouldSwitchImage()) {
+      (0, _state.setState)(_extends({}, _state.state, {
+        currentIndex: nextIndex()
+      }));
+
+      stopDragging();
+      selectAreaAndDraw();
+    }
+  }
+};
+
 var addListeners = function addListeners() {
   $canvas.onmousemove = handleMove;
   $canvas.ontouchmove = handleMove;
-  $canvas.onmousedown = startDrag;
-  $canvas.ontouchstart = startDrag;
-  $canvas.onmouseup = stopDrag;
-  $canvas.ontouchend = stopDrag;
+
+  $canvas.onmousedown = startDragging;
+  $canvas.ontouchstart = startDragging;
+
+  $canvas.onmouseup = stopDragging;
+  $canvas.ontouchend = stopDragging;
+};
+
+var setLoading = function setLoading(loading) {
+  $loading.style.display = loading ? 'block' : 'none';
 };
 
 var start = function () {
-  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var images;
+    return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context.prev = _context.next) {
           case 0:
-            $loading.style.display = 'block';
-
+            setLoading(true);
             addListeners();
-            (0, _state.setState)({
-              currentIndex: 0,
-              images: [],
-              isDragging: false,
-              startX: 0,
-              currentMouseDistance: 0
-            });
+            (0, _state.setState)(INITIAL_STATE);
 
-            _context2.next = 5;
-            return loadImages();
+            _context.next = 5;
+            return (0, _gallery.loadImages)();
 
           case 5:
+            images = _context.sent;
+
+            (0, _state.setState)(_extends({}, _state.state, { images: images }));
 
             selectAreaAndDraw();
-            $loading.style.display = 'none';
+            setLoading(false);
 
-          case 7:
+          case 9:
           case 'end':
-            return _context2.stop();
+            return _context.stop();
         }
       }
-    }, _callee2, undefined);
+    }, _callee, undefined);
   }));
 
   return function start() {
-    return _ref2.apply(this, arguments);
+    return _ref.apply(this, arguments);
   };
 }();
 
@@ -10539,9 +10452,115 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 var sources = ['https://i.ibb.co/p4dh2Rr/image.jpg', 'https://i.ibb.co/jwHDCxy/C1765777-A-12.jpg', 'https://i.ibb.co/1KYqLFm/2.jpg', 'https://i.ibb.co/3mbgGmm/3.jpg', 'https://i.ibb.co/7gSg4XJ/1620162271375.jpg', 'http://challenge.publitas.com/images/3.jpg', 'https://github.com/polinelottin.png'];
 
-exports.default = sources;
+var ALLOWED_IMAGES = /^https:.*.jpg$/;
+
+var loadImages = function () {
+  var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+    var images, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, source, img;
+
+    return regeneratorRuntime.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            images = [];
+            _iteratorNormalCompletion = true;
+            _didIteratorError = false;
+            _iteratorError = undefined;
+            _context.prev = 4;
+            _iterator = sources[Symbol.iterator]();
+
+          case 6:
+            if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+              _context.next = 23;
+              break;
+            }
+
+            source = _step.value;
+
+            if (!source.match(ALLOWED_IMAGES)) {
+              _context.next = 20;
+              break;
+            }
+
+            img = document.createElement('img');
+            _context.prev = 10;
+
+            img.src = source;
+            _context.next = 14;
+            return img.decode();
+
+          case 14:
+            images.push(img);
+            _context.next = 20;
+            break;
+
+          case 17:
+            _context.prev = 17;
+            _context.t0 = _context['catch'](10);
+
+            console.log(_context.t0);
+
+          case 20:
+            _iteratorNormalCompletion = true;
+            _context.next = 6;
+            break;
+
+          case 23:
+            _context.next = 29;
+            break;
+
+          case 25:
+            _context.prev = 25;
+            _context.t1 = _context['catch'](4);
+            _didIteratorError = true;
+            _iteratorError = _context.t1;
+
+          case 29:
+            _context.prev = 29;
+            _context.prev = 30;
+
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+
+          case 32:
+            _context.prev = 32;
+
+            if (!_didIteratorError) {
+              _context.next = 35;
+              break;
+            }
+
+            throw _iteratorError;
+
+          case 35:
+            return _context.finish(32);
+
+          case 36:
+            return _context.finish(29);
+
+          case 37:
+            return _context.abrupt('return', images);
+
+          case 38:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, undefined, [[4, 25, 29, 37], [10, 17], [30,, 32, 36]]);
+  }));
+
+  return function loadImages() {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+exports.loadImages = loadImages;
 
 /***/ }),
 /* 336 */
