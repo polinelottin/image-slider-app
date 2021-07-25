@@ -3,8 +3,11 @@ import '../vendors'
 
 const Gallery = require('./gallery')
 const State = require('./state')
+const Canvas = require('./canvas')
 
 const gallery = new Gallery()
+const canvas = new Canvas()
+
 const state = new State({
   currentIndex: 0,
   isDragging: false,
@@ -161,13 +164,20 @@ const setLoading = loading => {
   $loading.style.display = loading ? 'block' : 'none'
 }
 
+const drawImage = () => {
+  const { currentIndex, currentMouseDistance } = state.current
+  const images = gallery.images
+
+  canvas.drawImage(images[currentIndex], currentMouseDistance)
+}
+
 const start = async () => {
   setLoading(true)
   addListeners()
 
   await gallery.loadImages()
 
-  selectAreaAndDraw()
+  drawImage()
   setLoading(false)
 }
 
