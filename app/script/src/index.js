@@ -1,33 +1,33 @@
 import 'babel-polyfill'
 import '../vendors'
-import { state, setState } from './state'
 
 const Gallery = require('./gallery')
-var gallery = new Gallery()
+const State = require('./state')
 
-const $loading = document.getElementById('loading')
-const $canvas = document.getElementById('slider')
-const BB = $canvas.getBoundingClientRect()
-var WIDTH = $canvas.width
-var HEIGHT = $canvas.height
-const MIN_TO_SWITCH = BB.width * 0.5
-
-const INITIAL_STATE = {
+const gallery = new Gallery()
+const state = new State({
   currentIndex: 0,
   isDragging: false,
   startX: 0,
   currentMouseDistance: 0
-}
+})
+
+const $loading = document.getElementById('loading')
+const $canvas = document.getElementById('slider')
+const BB = $canvas.getBoundingClientRect()
+const WIDTH = $canvas.width
+const HEIGHT = $canvas.height
+const MIN_TO_SWITCH = BB.width * 0.5
 
 const getContext = () => document.getElementById('slider').getContext('2d')
 
 const updateCurrentMouseDistance = currentPosition => {
   const offsetX = BB.left
   const mx = parseInt(currentPosition - offsetX)
+  const { startX } = state.current
 
-  setState({
-    ...state,
-    currentMouseDistance: state.startX - mx
+  state.setState({
+    currentMouseDistance: startX - mx
   })
 }
 
@@ -61,13 +61,14 @@ const dimensions = {
     this.dWidth *= largestFactor
     this.dHeight *= largestFactor
 
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - state.currentMouseDistance
+    const { currentMouseDistance } = state.current
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - currentMouseDistance
     this.dy = this.imageMargin(this.maxHeight, this.dHeight)
   }
 }
 
 const nextIndex = () => {
-  const { currentIndex, currentMouseDistance } = state
+  const { currentIndex, currentMouseDistance } = state.current
   const images = gallery.images
 
   const direction = currentMouseDistance / Math.abs(currentMouseDistance)
@@ -85,7 +86,7 @@ const nextIndex = () => {
 }
 
 const selectAreaAndDraw = () => {
-  const { currentIndex, currentMouseDistance } = state
+  const { currentIndex, currentMouseDistance } = state.current
   const { images } = gallery
 
   const image = images[currentIndex]
@@ -106,23 +107,21 @@ const selectAreaAndDraw = () => {
 }
 
 const startDragging = event => {
-  setState({
-    ...state,
+  state.setState({
     startX: event.layerX,
     isDragging: true
   })
 }
 
 const stopDragging = () => {
-  setState({
-    ...state,
+  state.setState({
     isDragging: false,
     currentMouseDistance: 0
   })
 }
 
 const shouldSwitchImage = () => {
-  const { currentMouseDistance } = state
+  const { currentMouseDistance } = state.current
   return Math.abs(currentMouseDistance) > MIN_TO_SWITCH
 }
 
@@ -130,15 +129,14 @@ const handleMove = event => {
   event.preventDefault()
   event.stopPropagation()
 
-  const { isDragging } = state
+  const { isDragging } = state.current
 
   if (isDragging) {
     updateCurrentMouseDistance(event.clientX)
     selectAreaAndDraw()
 
     if (shouldSwitchImage()) {
-      setState({
-        ...state,
+      state.setState({
         currentIndex: nextIndex()
       })
 
@@ -166,7 +164,6 @@ const setLoading = loading => {
 const start = async () => {
   setLoading(true)
   addListeners()
-  setState(INITIAL_STATE)
 
   await gallery.loadImages()
 
