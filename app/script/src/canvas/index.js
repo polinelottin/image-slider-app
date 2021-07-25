@@ -5,13 +5,13 @@ const MAX_HEIGHT = $canvas.height
 const getContext = () => document.getElementById('slider').getContext('2d')
 
 function Canvas() {
-  this.scalingFactor = (original, computed) => {
-    return computed / original
-  }
-  this.imageMargin = (imageSize, maxSize) => {
-    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0
-  }
-  this.scaleToFit = (image, currentMouseDistance) => {
+  this.scalingFactor = (original, computed) => computed / original
+
+  this.imageMargin = (imageSize, maxSize) => (
+    imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0
+  )
+
+  this.scaleToFit = (image) => {
     const originalWidth = image.width
     const originalHeight = image.height
 
@@ -23,19 +23,32 @@ function Canvas() {
     const resizedWidth = largestFactor * originalWidth
     const resizedHeight = largestFactor * originalHeight
 
+    return { resizedWidth, resizedHeight }
+  }
+
+  this.drawImage = (image, currentMouseDistance) => {
+    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
+
     const dx = this.imageMargin(resizedWidth, MAX_WIDHT) - currentMouseDistance
     const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
 
-    return { resizedWidth, resizedHeight, dx, dy }
-  }
-  this.drawImage = (image, currentMouseDistance) => {
-    const {
-      resizedWidth,
-      resizedHeight,
-      dx, dy
-    } = this.scaleToFit(image, currentMouseDistance)
-
     getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT)
+    getContext().drawImage(
+      image,
+      0, 0,
+      image.width, image.height,
+      dx, dy,
+      resizedWidth, resizedHeight
+    )
+  }
+
+  this.drawNextImage = (image, currentMouseDistance) => {
+    const { resizedWidth, resizedHeight } = this.scaleToFit(image, currentMouseDistance)
+
+    const startingPoint = MAX_WIDHT - currentMouseDistance
+    const dx = this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint
+    const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
+
     getContext().drawImage(
       image,
       0, 0,

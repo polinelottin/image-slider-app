@@ -3955,13 +3955,7 @@ var state = new State({
 var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
 var BB = $canvas.getBoundingClientRect();
-var WIDTH = $canvas.width;
-var HEIGHT = $canvas.height;
 var MIN_TO_SWITCH = BB.width * 0.5;
-
-var getContext = function getContext() {
-  return document.getElementById('slider').getContext('2d');
-};
 
 var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
   var offsetX = BB.left;
@@ -3972,43 +3966,6 @@ var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosi
   state.setState({
     currentMouseDistance: startX - mx
   });
-};
-
-var dimensions = {
-  maxHeight: HEIGHT,
-  maxWidth: WIDTH,
-  dWidth: 800,
-  dHeight: 600,
-  dx: 0,
-  dy: 0,
-  readDimensions: function readDimensions(image) {
-    this.dWidth = image.width;
-    this.dHeight = image.height;
-    return this;
-  },
-  largestProperty: function largestProperty() {
-    return this.dHeight > this.dWidth ? 'height' : 'width';
-  },
-  scalingFactor: function scalingFactor(original, computed) {
-    return computed / original;
-  },
-  imageMargin: function imageMargin(maxSize, imageSize) {
-    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
-  },
-  scaleToFit: function scaleToFit() {
-    var xFactor = this.scalingFactor(this.dWidth, this.maxWidth);
-    var yFactor = this.scalingFactor(this.dHeight, this.maxHeight);
-
-    var largestFactor = Math.min(xFactor, yFactor);
-
-    this.dWidth *= largestFactor;
-    this.dHeight *= largestFactor;
-
-    var currentMouseDistance = state.current.currentMouseDistance;
-
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - currentMouseDistance;
-    this.dy = this.imageMargin(this.maxHeight, this.dHeight);
-  }
 };
 
 var nextIndex = function nextIndex() {
@@ -4032,34 +3989,6 @@ var nextIndex = function nextIndex() {
   return newIndex;
 };
 
-var selectAreaAndDraw = function selectAreaAndDraw() {
-  var _state$current2 = state.current,
-      currentIndex = _state$current2.currentIndex,
-      currentMouseDistance = _state$current2.currentMouseDistance;
-  var images = gallery.images;
-
-
-  var image = images[currentIndex];
-
-  dimensions.readDimensions(image).scaleToFit();
-  var dx = dimensions.dx,
-      dy = dimensions.dy,
-      dWidth = dimensions.dWidth,
-      dHeight = dimensions.dHeight;
-
-
-  getContext().clearRect(0, 0, WIDTH, HEIGHT);
-  getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
-
-  if (currentMouseDistance !== 0) {
-    var nextImage = images[nextIndex()];
-
-    dimensions.readDimensions(nextImage).scaleToFit();
-    var dww = WIDTH - currentMouseDistance;
-    getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight);
-  }
-};
-
 var startDragging = function startDragging(event) {
   state.setState({
     startX: event.layerX,
@@ -4080,6 +4009,21 @@ var shouldSwitchImage = function shouldSwitchImage() {
   return Math.abs(currentMouseDistance) > MIN_TO_SWITCH;
 };
 
+var drawImage = function drawImage() {
+  var _state$current2 = state.current,
+      currentIndex = _state$current2.currentIndex,
+      currentMouseDistance = _state$current2.currentMouseDistance;
+
+  var images = gallery.images;
+
+  canvas.drawImage(images[currentIndex], currentMouseDistance);
+
+  if (currentMouseDistance !== 0) {
+    var nextImage = images[nextIndex()];
+    canvas.drawNextImage(nextImage, currentMouseDistance);
+  }
+};
+
 var handleMove = function handleMove(event) {
   event.preventDefault();
   event.stopPropagation();
@@ -4089,7 +4033,7 @@ var handleMove = function handleMove(event) {
 
   if (isDragging) {
     updateCurrentMouseDistance(event.clientX);
-    selectAreaAndDraw();
+    drawImage();
 
     if (shouldSwitchImage()) {
       state.setState({
@@ -4097,7 +4041,7 @@ var handleMove = function handleMove(event) {
       });
 
       stopDragging();
-      selectAreaAndDraw();
+      drawImage();
     }
   }
 };
@@ -4115,16 +4059,6 @@ var addListeners = function addListeners() {
 
 var setLoading = function setLoading(loading) {
   $loading.style.display = loading ? 'block' : 'none';
-};
-
-var drawImage = function drawImage() {
-  var _state$current3 = state.current,
-      currentIndex = _state$current3.currentIndex,
-      currentMouseDistance = _state$current3.currentMouseDistance;
-
-  var images = gallery.images;
-
-  canvas.drawImage(images[currentIndex], currentMouseDistance);
 };
 
 var start = function () {
@@ -10624,10 +10558,12 @@ function Canvas() {
   this.scalingFactor = function (original, computed) {
     return computed / original;
   };
+
   this.imageMargin = function (imageSize, maxSize) {
     return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
   };
-  this.scaleToFit = function (image, currentMouseDistance) {
+
+  this.scaleToFit = function (image) {
     var originalWidth = image.width;
     var originalHeight = image.height;
 
@@ -10639,19 +10575,30 @@ function Canvas() {
     var resizedWidth = largestFactor * originalWidth;
     var resizedHeight = largestFactor * originalHeight;
 
+    return { resizedWidth: resizedWidth, resizedHeight: resizedHeight };
+  };
+
+  this.drawImage = function (image, currentMouseDistance) {
+    var _scaleToFit = _this.scaleToFit(image),
+        resizedWidth = _scaleToFit.resizedWidth,
+        resizedHeight = _scaleToFit.resizedHeight;
+
     var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) - currentMouseDistance;
     var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
 
-    return { resizedWidth: resizedWidth, resizedHeight: resizedHeight, dx: dx, dy: dy };
-  };
-  this.drawImage = function (image, currentMouseDistance) {
-    var _scaleToFit = _this.scaleToFit(image, currentMouseDistance),
-        resizedWidth = _scaleToFit.resizedWidth,
-        resizedHeight = _scaleToFit.resizedHeight,
-        dx = _scaleToFit.dx,
-        dy = _scaleToFit.dy;
-
     getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT);
+    getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
+  };
+
+  this.drawNextImage = function (image, currentMouseDistance) {
+    var _scaleToFit2 = _this.scaleToFit(image, currentMouseDistance),
+        resizedWidth = _scaleToFit2.resizedWidth,
+        resizedHeight = _scaleToFit2.resizedHeight;
+
+    var startingPoint = MAX_WIDHT - currentMouseDistance;
+    var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint;
+    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+
     getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
   };
 }
