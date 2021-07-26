@@ -4001,6 +4001,7 @@ var stopDragging = function stopDragging() {
     isDragging: false,
     currentMouseDistance: 0
   });
+  drawImage();
 };
 
 var shouldSwitchImage = function shouldSwitchImage() {
@@ -4018,9 +4019,13 @@ var drawImage = function drawImage() {
 
   canvas.drawImage(images[currentIndex], currentMouseDistance);
 
-  if (currentMouseDistance !== 0) {
+  if (currentMouseDistance > 0) {
     var nextImage = images[nextIndex()];
     canvas.drawNextImage(nextImage, currentMouseDistance);
+  }
+  if (currentMouseDistance < 0) {
+    var _nextImage = images[nextIndex()];
+    canvas.drawPreviousImage(_nextImage, currentMouseDistance);
   }
 };
 
@@ -10578,28 +10583,40 @@ function Canvas() {
     return { resizedWidth: resizedWidth, resizedHeight: resizedHeight };
   };
 
-  this.drawImage = function (image, currentMouseDistance) {
+  this.drawImage = function (image, mouseDragDistance) {
     var _scaleToFit = _this.scaleToFit(image),
         resizedWidth = _scaleToFit.resizedWidth,
         resizedHeight = _scaleToFit.resizedHeight;
 
-    var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) - currentMouseDistance;
+    var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance;
     var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
 
     getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT);
     getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
   };
 
-  this.drawNextImage = function (image, currentMouseDistance) {
-    var _scaleToFit2 = _this.scaleToFit(image, currentMouseDistance),
+  this.drawNextImage = function (image, mouseDragDistance) {
+    var _scaleToFit2 = _this.scaleToFit(image),
         resizedWidth = _scaleToFit2.resizedWidth,
         resizedHeight = _scaleToFit2.resizedHeight;
 
-    var startingPoint = MAX_WIDHT - currentMouseDistance;
+    var startingPoint = MAX_WIDHT - mouseDragDistance;
     var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint;
     var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
 
     getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
+  };
+
+  this.drawPreviousImage = function (image, mouseDragDistance) {
+    var _scaleToFit3 = _this.scaleToFit(image),
+        resizedWidth = _scaleToFit3.resizedWidth,
+        resizedHeight = _scaleToFit3.resizedHeight;
+
+    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+    var begining = image.width * mouseDragDistance / resizedWidth;
+    var sx = image.width - Math.abs(begining);
+
+    getContext().drawImage(image, sx, 0, image.width, image.height, 0, dy, resizedWidth, resizedHeight);
   };
 }
 

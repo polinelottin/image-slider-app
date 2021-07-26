@@ -60,6 +60,7 @@ const stopDragging = () => {
     isDragging: false,
     currentMouseDistance: 0
   })
+  drawImage()
 }
 
 const shouldSwitchImage = () => {
@@ -73,9 +74,13 @@ const drawImage = () => {
 
   canvas.drawImage(images[currentIndex], currentMouseDistance)
 
-  if (currentMouseDistance !== 0) {
+  if (currentMouseDistance > 0) {
     const nextImage = images[nextIndex()]
     canvas.drawNextImage(nextImage, currentMouseDistance)
+  }
+  if (currentMouseDistance < 0) {
+    const nextImage = images[nextIndex()]
+    canvas.drawPreviousImage(nextImage, currentMouseDistance)
   }
 }
 
