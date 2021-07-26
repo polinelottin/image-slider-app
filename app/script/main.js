@@ -3946,10 +3946,10 @@ var gallery = new Gallery();
 var canvas = new Canvas();
 
 var state = new State({
-  currentIndex: 0,
-  isDragging: false,
+  index: 0,
   startX: 0,
-  currentMouseDistance: 0
+  mouseDistance: 0,
+  isDragging: false
 });
 
 var $loading = document.getElementById('loading');
@@ -3957,26 +3957,29 @@ var $canvas = document.getElementById('slider');
 var BB = $canvas.getBoundingClientRect();
 var MIN_TO_SWITCH = BB.width * 0.5;
 
-var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
+var updateMouseDistance = function updateMouseDistance(currentPosition) {
   var offsetX = BB.left;
   var mx = parseInt(currentPosition - offsetX);
   var startX = state.current.startX;
 
 
   state.setState({
-    currentMouseDistance: startX - mx
+    mouseDistance: startX - mx
   });
 };
 
-var nextIndex = function nextIndex() {
+var nextIndex = function nextIndex(debug) {
   var _state$current = state.current,
-      currentIndex = _state$current.currentIndex,
-      currentMouseDistance = _state$current.currentMouseDistance;
+      index = _state$current.index,
+      mouseDistance = _state$current.mouseDistance;
+
+
+  if (mouseDistance === 0) return index;
 
   var images = gallery.images;
 
-  var direction = currentMouseDistance / Math.abs(currentMouseDistance);
-  var newIndex = currentIndex + direction;
+  var direction = mouseDistance / Math.abs(mouseDistance);
+  var newIndex = index + direction;
 
   if (newIndex === images.length) {
     return 0;
@@ -3999,33 +4002,33 @@ var startDragging = function startDragging(event) {
 var stopDragging = function stopDragging() {
   state.setState({
     isDragging: false,
-    currentMouseDistance: 0
+    mouseDistance: 0
   });
   drawImage();
 };
 
 var shouldSwitchImage = function shouldSwitchImage() {
-  var currentMouseDistance = state.current.currentMouseDistance;
+  var mouseDistance = state.current.mouseDistance;
 
-  return Math.abs(currentMouseDistance) > MIN_TO_SWITCH;
+  return Math.abs(mouseDistance) > MIN_TO_SWITCH;
 };
 
 var drawImage = function drawImage() {
   var _state$current2 = state.current,
-      currentIndex = _state$current2.currentIndex,
-      currentMouseDistance = _state$current2.currentMouseDistance;
+      index = _state$current2.index,
+      mouseDistance = _state$current2.mouseDistance;
 
   var images = gallery.images;
 
-  canvas.drawImage(images[currentIndex], currentMouseDistance);
+  canvas.drawImage(images[index], mouseDistance);
 
-  if (currentMouseDistance > 0) {
+  if (mouseDistance > 0) {
     var nextImage = images[nextIndex()];
-    canvas.drawNextImage(nextImage, currentMouseDistance);
+    canvas.drawNextImage(nextImage, mouseDistance);
   }
-  if (currentMouseDistance < 0) {
+  if (mouseDistance < 0) {
     var _nextImage = images[nextIndex()];
-    canvas.drawPreviousImage(_nextImage, currentMouseDistance);
+    canvas.drawPreviousImage(_nextImage, mouseDistance);
   }
 };
 
@@ -4037,12 +4040,12 @@ var handleMove = function handleMove(event) {
 
 
   if (isDragging) {
-    updateCurrentMouseDistance(event.clientX);
+    updateMouseDistance(event.clientX);
     drawImage();
 
     if (shouldSwitchImage()) {
       state.setState({
-        currentIndex: nextIndex()
+        index: nextIndex()
       });
 
       stopDragging();

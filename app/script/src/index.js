@@ -9,10 +9,10 @@ const gallery = new Gallery()
 const canvas = new Canvas()
 
 const state = new State({
-  currentIndex: 0,
-  isDragging: false,
+  index: 0,
   startX: 0,
-  currentMouseDistance: 0
+  mouseDistance: 0,
+  isDragging: false
 })
 
 const $loading = document.getElementById('loading')
@@ -20,22 +20,25 @@ const $canvas = document.getElementById('slider')
 const BB = $canvas.getBoundingClientRect()
 const MIN_TO_SWITCH = BB.width * 0.5
 
-const updateCurrentMouseDistance = currentPosition => {
+const updateMouseDistance = currentPosition => {
   const offsetX = BB.left
   const mx = parseInt(currentPosition - offsetX)
   const { startX } = state.current
 
   state.setState({
-    currentMouseDistance: startX - mx
+    mouseDistance: startX - mx
   })
 }
 
-const nextIndex = () => {
-  const { currentIndex, currentMouseDistance } = state.current
+const nextIndex = (debug) => {
+  const { index, mouseDistance } = state.current
+
+  if (mouseDistance === 0) return index
+
   const images = gallery.images
 
-  const direction = currentMouseDistance / Math.abs(currentMouseDistance)
-  let newIndex = currentIndex + direction
+  const direction = mouseDistance / Math.abs(mouseDistance)
+  let newIndex = index + direction
 
   if (newIndex === images.length) {
     return 0
@@ -58,29 +61,29 @@ const startDragging = event => {
 const stopDragging = () => {
   state.setState({
     isDragging: false,
-    currentMouseDistance: 0
+    mouseDistance: 0
   })
   drawImage()
 }
 
 const shouldSwitchImage = () => {
-  const { currentMouseDistance } = state.current
-  return Math.abs(currentMouseDistance) > MIN_TO_SWITCH
+  const { mouseDistance } = state.current
+  return Math.abs(mouseDistance) > MIN_TO_SWITCH
 }
 
 const drawImage = () => {
-  const { currentIndex, currentMouseDistance } = state.current
+  const { index, mouseDistance } = state.current
   const images = gallery.images
 
-  canvas.drawImage(images[currentIndex], currentMouseDistance)
+  canvas.drawImage(images[index], mouseDistance)
 
-  if (currentMouseDistance > 0) {
+  if (mouseDistance > 0) {
     const nextImage = images[nextIndex()]
-    canvas.drawNextImage(nextImage, currentMouseDistance)
+    canvas.drawNextImage(nextImage, mouseDistance)
   }
-  if (currentMouseDistance < 0) {
+  if (mouseDistance < 0) {
     const nextImage = images[nextIndex()]
-    canvas.drawPreviousImage(nextImage, currentMouseDistance)
+    canvas.drawPreviousImage(nextImage, mouseDistance)
   }
 }
 
@@ -91,12 +94,12 @@ const handleMove = event => {
   const { isDragging } = state.current
 
   if (isDragging) {
-    updateCurrentMouseDistance(event.clientX)
+    updateMouseDistance(event.clientX)
     drawImage()
 
     if (shouldSwitchImage()) {
       state.setState({
-        currentIndex: nextIndex()
+        index: nextIndex()
       })
 
       stopDragging()
