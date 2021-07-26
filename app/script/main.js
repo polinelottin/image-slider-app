@@ -3968,6 +3968,13 @@ var updateMouseDistance = function updateMouseDistance(currentPosition) {
   });
 };
 
+var slideDirection = function slideDirection() {
+  var mouseDistance = state.current.mouseDistance;
+
+
+  return mouseDistance / Math.abs(mouseDistance);
+};
+
 var nextIndex = function nextIndex() {
   var _state$current = state.current,
       index = _state$current.index,
@@ -3978,8 +3985,7 @@ var nextIndex = function nextIndex() {
 
   var images = gallery.images;
 
-  var direction = mouseDistance / Math.abs(mouseDistance);
-  var newIndex = index + direction;
+  var newIndex = index + slideDirection();
 
   if (newIndex === images.length) {
     return 0;
@@ -4029,16 +4035,20 @@ var animateTransition = function animateTransition() {
   var mouseDistance = state.current.mouseDistance;
 
 
+  var direction = slideDirection();
+
   var timer = setInterval(function () {
     counter++;
-    var newDistance = mouseDistance + 10 * counter;
+
+    var increment = 10 * counter * direction;
+    var newDistance = mouseDistance + increment;
     state.setState({
       mouseDistance: newDistance
     });
 
     drawImage();
 
-    if (newDistance >= 800) {
+    if (Math.abs(newDistance) >= 800) {
       state.setState({ index: nextIndex() });
       stopDragging();
       drawImage();

@@ -30,6 +30,12 @@ const updateMouseDistance = currentPosition => {
   })
 }
 
+const slideDirection = () => {
+  const { mouseDistance } = state.current
+
+  return mouseDistance / Math.abs(mouseDistance)
+}
+
 const nextIndex = () => {
   const { index, mouseDistance } = state.current
 
@@ -37,8 +43,7 @@ const nextIndex = () => {
 
   const images = gallery.images
 
-  const direction = mouseDistance / Math.abs(mouseDistance)
-  let newIndex = index + direction
+  let newIndex = index + slideDirection()
 
   if (newIndex === images.length) {
     return 0
@@ -83,16 +88,20 @@ const animateTransition = () => {
   let counter = 0
   const { mouseDistance } = state.current
 
+  const direction = slideDirection()
+
   const timer = setInterval(function() {
     counter++
-    const newDistance = mouseDistance + (10 * counter)
+
+    const increment = (10 * counter) * direction
+    const newDistance = mouseDistance + increment
     state.setState({
       mouseDistance: newDistance
     })
 
     drawImage()
 
-    if (newDistance >= 800) {
+    if (Math.abs(newDistance) >= 800) {
       state.setState({ index: nextIndex() })
       stopDragging()
       drawImage()
