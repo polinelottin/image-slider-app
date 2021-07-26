@@ -3968,7 +3968,7 @@ var updateMouseDistance = function updateMouseDistance(currentPosition) {
   });
 };
 
-var nextIndex = function nextIndex(debug) {
+var nextIndex = function nextIndex() {
   var _state$current = state.current,
       index = _state$current.index,
       mouseDistance = _state$current.mouseDistance;
@@ -4021,15 +4021,30 @@ var drawImage = function drawImage() {
   var images = gallery.images;
 
   canvas.drawImage(images[index], mouseDistance);
+  canvas.drawNextImage(images[nextIndex()], mouseDistance);
+};
 
-  if (mouseDistance > 0) {
-    var nextImage = images[nextIndex()];
-    canvas.drawNextImage(nextImage, mouseDistance);
-  }
-  if (mouseDistance < 0) {
-    var _nextImage = images[nextIndex()];
-    canvas.drawPreviousImage(_nextImage, mouseDistance);
-  }
+var animateTransition = function animateTransition() {
+  var counter = 0;
+  var mouseDistance = state.current.mouseDistance;
+
+
+  var timer = setInterval(function () {
+    counter++;
+    var newDistance = mouseDistance + 10 * counter;
+    state.setState({
+      mouseDistance: newDistance
+    });
+
+    drawImage();
+
+    if (newDistance >= 800) {
+      state.setState({ index: nextIndex() });
+      stopDragging();
+      drawImage();
+      clearInterval(timer);
+    }
+  }, 1);
 };
 
 var handleMove = function handleMove(event) {
@@ -4045,11 +4060,9 @@ var handleMove = function handleMove(event) {
 
     if (shouldSwitchImage()) {
       state.setState({
-        index: nextIndex()
+        isDragging: false
       });
-
-      stopDragging();
-      drawImage();
+      animateTransition();
     }
   }
 };
@@ -4100,7 +4113,7 @@ var start = function () {
 }();
 
 window.onload = function () {
-  start();
+  return start();
 };
 
 /***/ }),
@@ -10599,27 +10612,26 @@ function Canvas() {
   };
 
   this.drawNextImage = function (image, mouseDragDistance) {
+    if (mouseDragDistance === 0) return;
+
     var _scaleToFit2 = _this.scaleToFit(image),
         resizedWidth = _scaleToFit2.resizedWidth,
         resizedHeight = _scaleToFit2.resizedHeight;
 
-    var startingPoint = MAX_WIDHT - mouseDragDistance;
-    var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint;
     var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
 
-    getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
-  };
+    if (mouseDragDistance > 0) {
+      var startingPoint = MAX_WIDHT - mouseDragDistance;
+      var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint;
 
-  this.drawPreviousImage = function (image, mouseDragDistance) {
-    var _scaleToFit3 = _this.scaleToFit(image),
-        resizedWidth = _scaleToFit3.resizedWidth,
-        resizedHeight = _scaleToFit3.resizedHeight;
+      getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
+    } else {
+      var _dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+      var begining = image.width * mouseDragDistance / resizedWidth;
+      var sx = image.width - Math.abs(begining);
 
-    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
-    var begining = image.width * mouseDragDistance / resizedWidth;
-    var sx = image.width - Math.abs(begining);
-
-    getContext().drawImage(image, sx, 0, image.width, image.height, 0, dy, resizedWidth, resizedHeight);
+      getContext().drawImage(image, sx, 0, image.width, image.height, 0, _dy, resizedWidth, resizedHeight);
+    }
   };
 }
 

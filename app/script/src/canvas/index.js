@@ -43,35 +43,35 @@ function Canvas() {
   }
 
   this.drawNextImage = (image, mouseDragDistance) => {
-    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
+    if (mouseDragDistance === 0) return
 
-    const startingPoint = MAX_WIDHT - mouseDragDistance
-    const dx = this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint
+    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
     const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
 
-    getContext().drawImage(
-      image,
-      0, 0,
-      image.width, image.height,
-      dx, dy,
-      resizedWidth, resizedHeight
-    )
-  }
+    if (mouseDragDistance > 0) {
+      const startingPoint = MAX_WIDHT - mouseDragDistance
+      const dx = this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint
 
-  this.drawPreviousImage = (image, mouseDragDistance) => {
-    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
+      getContext().drawImage(
+        image,
+        0, 0,
+        image.width, image.height,
+        dx, dy,
+        resizedWidth, resizedHeight
+      )
+    } else {
+      const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
+      const begining = (image.width * mouseDragDistance) / resizedWidth
+      const sx = image.width - Math.abs(begining)
 
-    const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
-    const begining = (image.width * mouseDragDistance) / resizedWidth
-    const sx = image.width - Math.abs(begining)
-
-    getContext().drawImage(
-      image,
-      sx, 0,
-      image.width, image.height,
-      0, dy,
-      resizedWidth, resizedHeight
-    )
+      getContext().drawImage(
+        image,
+        sx, 0,
+        image.width, image.height,
+        0, dy,
+        resizedWidth, resizedHeight
+      )
+    }
   }
 }
 

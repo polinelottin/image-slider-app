@@ -30,7 +30,7 @@ const updateMouseDistance = currentPosition => {
   })
 }
 
-const nextIndex = (debug) => {
+const nextIndex = () => {
   const { index, mouseDistance } = state.current
 
   if (mouseDistance === 0) return index
@@ -76,15 +76,29 @@ const drawImage = () => {
   const images = gallery.images
 
   canvas.drawImage(images[index], mouseDistance)
+  canvas.drawNextImage(images[nextIndex()], mouseDistance)
+}
 
-  if (mouseDistance > 0) {
-    const nextImage = images[nextIndex()]
-    canvas.drawNextImage(nextImage, mouseDistance)
-  }
-  if (mouseDistance < 0) {
-    const nextImage = images[nextIndex()]
-    canvas.drawPreviousImage(nextImage, mouseDistance)
-  }
+const animateTransition = () => {
+  let counter = 0
+  const { mouseDistance } = state.current
+
+  const timer = setInterval(function() {
+    counter++
+    const newDistance = mouseDistance + (10 * counter)
+    state.setState({
+      mouseDistance: newDistance
+    })
+
+    drawImage()
+
+    if (newDistance >= 800) {
+      state.setState({ index: nextIndex() })
+      stopDragging()
+      drawImage()
+      clearInterval(timer)
+    }
+  }, 1)
 }
 
 const handleMove = event => {
@@ -99,11 +113,9 @@ const handleMove = event => {
 
     if (shouldSwitchImage()) {
       state.setState({
-        index: nextIndex()
+        isDragging: false
       })
-
-      stopDragging()
-      drawImage()
+      animateTransition()
     }
   }
 }
@@ -133,6 +145,4 @@ const start = async () => {
   setLoading(false)
 }
 
-window.onload = function () {
-  start()
-}
+window.onload = () => start()
