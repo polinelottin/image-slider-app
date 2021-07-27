@@ -5,9 +5,6 @@ const Gallery = require('./gallery')
 const State = require('./state')
 const Canvas = require('./canvas')
 
-const gallery = new Gallery()
-const canvas = new Canvas()
-
 const state = new State({
   index: 0,
   startX: 0,
@@ -19,6 +16,9 @@ const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
 const BB = $canvas.getBoundingClientRect()
 const MIN_TO_SWITCH = BB.width * 0.5
+
+const gallery = new Gallery()
+const canvas = new Canvas($canvas)
 
 const updateMouseDistance = currentPosition => {
   const offsetX = BB.left

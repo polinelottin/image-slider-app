@@ -1,10 +1,9 @@
-const $canvas = document.getElementById('slider')
-const MAX_WIDHT = $canvas.width
-const MAX_HEIGHT = $canvas.height
+function Canvas(element) {
+  this.canvas = element
+  this.maxWidth = element.width
+  this.maxHeight = element.height
+  this.context = this.canvas.getContext('2d')
 
-const getContext = () => document.getElementById('slider').getContext('2d')
-
-function Canvas() {
   this.scalingFactor = (original, computed) => computed / original
 
   this.imageMargin = (imageSize, maxSize) => (
@@ -15,8 +14,8 @@ function Canvas() {
     const originalWidth = image.width
     const originalHeight = image.height
 
-    const xFactor = this.scalingFactor(originalWidth, MAX_WIDHT)
-    const yFactor = this.scalingFactor(originalHeight, MAX_HEIGHT)
+    const xFactor = this.scalingFactor(originalWidth, this.maxWidth)
+    const yFactor = this.scalingFactor(originalHeight, this.maxHeight)
 
     const largestFactor = Math.min(xFactor, yFactor)
 
@@ -27,7 +26,7 @@ function Canvas() {
   }
 
   this.draw = (image, { sx, sy, sw, sh, dx, dy, dw, dh }) => {
-    getContext().drawImage(
+    this.context.drawImage(
       image,
       sx, sy, sw, sh, dx, dy, dw, dh
     )
@@ -41,22 +40,22 @@ function Canvas() {
       sy: 0,
       sw: image.width,
       sh: image.height,
-      dx: this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance,
-      dy: this.imageMargin(resizedHeight, MAX_HEIGHT),
+      dx: this.imageMargin(resizedWidth, this.maxWidth) - mouseDragDistance,
+      dy: this.imageMargin(resizedHeight, this.maxHeight),
       dw: resizedWidth,
       dh: resizedHeight
     }
   }
 
   this.drawMainImage = (image, mouseDragDistance) => {
-    getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT)
+    this.context.clearRect(0, 0, this.maxWidth, this.maxHeight)
     this.draw(image, this.dimensionsToDraw(image, mouseDragDistance))
   }
 
   this.drawNextImage = (image, mouseDragDistance) => {
     if (mouseDragDistance === 0) return
 
-    const startingPoint = (MAX_WIDHT - mouseDragDistance) * -1
+    const startingPoint = (this.maxWidth - mouseDragDistance) * -1
     const dimensions = this.dimensionsToDraw(image, startingPoint)
 
     if (mouseDragDistance < 0) {

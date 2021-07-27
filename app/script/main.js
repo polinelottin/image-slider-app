@@ -3942,9 +3942,6 @@ var Gallery = __webpack_require__(335);
 var State = __webpack_require__(337);
 var Canvas = __webpack_require__(338);
 
-var gallery = new Gallery();
-var canvas = new Canvas();
-
 var state = new State({
   index: 0,
   startX: 0,
@@ -3956,6 +3953,9 @@ var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
 var BB = $canvas.getBoundingClientRect();
 var MIN_TO_SWITCH = BB.width * 0.5;
+
+var gallery = new Gallery();
+var canvas = new Canvas($canvas);
 
 var updateMouseDistance = function updateMouseDistance(currentPosition) {
   var offsetX = BB.left;
@@ -10575,16 +10575,13 @@ module.exports = State;
 "use strict";
 
 
-var $canvas = document.getElementById('slider');
-var MAX_WIDHT = $canvas.width;
-var MAX_HEIGHT = $canvas.height;
-
-var getContext = function getContext() {
-  return document.getElementById('slider').getContext('2d');
-};
-
-function Canvas() {
+function Canvas(element) {
   var _this = this;
+
+  this.canvas = element;
+  this.maxWidth = element.width;
+  this.maxHeight = element.height;
+  this.context = this.canvas.getContext('2d');
 
   this.scalingFactor = function (original, computed) {
     return computed / original;
@@ -10598,8 +10595,8 @@ function Canvas() {
     var originalWidth = image.width;
     var originalHeight = image.height;
 
-    var xFactor = _this.scalingFactor(originalWidth, MAX_WIDHT);
-    var yFactor = _this.scalingFactor(originalHeight, MAX_HEIGHT);
+    var xFactor = _this.scalingFactor(originalWidth, _this.maxWidth);
+    var yFactor = _this.scalingFactor(originalHeight, _this.maxHeight);
 
     var largestFactor = Math.min(xFactor, yFactor);
 
@@ -10619,7 +10616,7 @@ function Canvas() {
         dw = _ref.dw,
         dh = _ref.dh;
 
-    getContext().drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+    _this.context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
   };
 
   this.dimensionsToDraw = function (image, mouseDragDistance) {
@@ -10632,22 +10629,22 @@ function Canvas() {
       sy: 0,
       sw: image.width,
       sh: image.height,
-      dx: _this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance,
-      dy: _this.imageMargin(resizedHeight, MAX_HEIGHT),
+      dx: _this.imageMargin(resizedWidth, _this.maxWidth) - mouseDragDistance,
+      dy: _this.imageMargin(resizedHeight, _this.maxHeight),
       dw: resizedWidth,
       dh: resizedHeight
     };
   };
 
   this.drawMainImage = function (image, mouseDragDistance) {
-    getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT);
+    _this.context.clearRect(0, 0, _this.maxWidth, _this.maxHeight);
     _this.draw(image, _this.dimensionsToDraw(image, mouseDragDistance));
   };
 
   this.drawNextImage = function (image, mouseDragDistance) {
     if (mouseDragDistance === 0) return;
 
-    var startingPoint = (MAX_WIDHT - mouseDragDistance) * -1;
+    var startingPoint = (_this.maxWidth - mouseDragDistance) * -1;
     var dimensions = _this.dimensionsToDraw(image, startingPoint);
 
     if (mouseDragDistance < 0) {
