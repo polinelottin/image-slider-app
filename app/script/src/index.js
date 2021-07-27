@@ -5,9 +5,6 @@ const Gallery = require('./gallery')
 const State = require('./state')
 const Canvas = require('./canvas')
 
-const gallery = new Gallery()
-const canvas = new Canvas()
-
 const state = new State({
   index: 0,
   startX: 0,
@@ -19,6 +16,9 @@ const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
 const BB = $canvas.getBoundingClientRect()
 const MIN_TO_SWITCH = BB.width * 0.5
+
+const gallery = new Gallery()
+const canvas = new Canvas($canvas)
 
 const updateMouseDistance = currentPosition => {
   const offsetX = BB.left
@@ -32,7 +32,6 @@ const updateMouseDistance = currentPosition => {
 
 const slideDirection = () => {
   const { mouseDistance } = state.current
-
   return mouseDistance / Math.abs(mouseDistance)
 }
 
@@ -41,16 +40,16 @@ const nextIndex = () => {
 
   if (mouseDistance === 0) return index
 
-  const images = gallery.images
+  const totalImages = gallery.images.length
 
   let newIndex = index + slideDirection()
 
-  if (newIndex === images.length) {
+  if (newIndex >= totalImages) {
     return 0
   }
 
   if (newIndex < 0) {
-    return images.length - 1
+    return totalImages - 1
   }
 
   return newIndex
@@ -80,28 +79,24 @@ const drawImage = () => {
   const { index, mouseDistance } = state.current
   const images = gallery.images
 
-  canvas.drawImage(images[index], mouseDistance)
+  canvas.drawMainImage(images[index], mouseDistance)
   canvas.drawNextImage(images[nextIndex()], mouseDistance)
 }
 
 const animateTransition = () => {
-  let counter = 0
   const { mouseDistance } = state.current
-
   const direction = slideDirection()
 
-  const timer = setInterval(function() {
+  let counter = 0
+  const timer = setInterval(() => {
     counter++
-
     const increment = (10 * counter) * direction
     const newDistance = mouseDistance + increment
-    state.setState({
-      mouseDistance: newDistance
-    })
 
+    state.setState({ mouseDistance: newDistance })
     drawImage()
 
-    if (Math.abs(newDistance) >= 800) {
+    if (Math.abs(newDistance) >= $canvas.width) {
       state.setState({ index: nextIndex() })
       stopDragging()
       drawImage()
@@ -121,9 +116,7 @@ const handleMove = event => {
     drawImage()
 
     if (shouldSwitchImage()) {
-      state.setState({
-        isDragging: false
-      })
+      state.setState({ isDragging: false })
       animateTransition()
     }
   }

@@ -3942,9 +3942,6 @@ var Gallery = __webpack_require__(335);
 var State = __webpack_require__(337);
 var Canvas = __webpack_require__(338);
 
-var gallery = new Gallery();
-var canvas = new Canvas();
-
 var state = new State({
   index: 0,
   startX: 0,
@@ -3956,6 +3953,9 @@ var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
 var BB = $canvas.getBoundingClientRect();
 var MIN_TO_SWITCH = BB.width * 0.5;
+
+var gallery = new Gallery();
+var canvas = new Canvas($canvas);
 
 var updateMouseDistance = function updateMouseDistance(currentPosition) {
   var offsetX = BB.left;
@@ -3971,7 +3971,6 @@ var updateMouseDistance = function updateMouseDistance(currentPosition) {
 var slideDirection = function slideDirection() {
   var mouseDistance = state.current.mouseDistance;
 
-
   return mouseDistance / Math.abs(mouseDistance);
 };
 
@@ -3983,16 +3982,16 @@ var nextIndex = function nextIndex() {
 
   if (mouseDistance === 0) return index;
 
-  var images = gallery.images;
+  var totalImages = gallery.images.length;
 
   var newIndex = index + slideDirection();
 
-  if (newIndex === images.length) {
+  if (newIndex >= totalImages) {
     return 0;
   }
 
   if (newIndex < 0) {
-    return images.length - 1;
+    return totalImages - 1;
   }
 
   return newIndex;
@@ -4026,29 +4025,25 @@ var drawImage = function drawImage() {
 
   var images = gallery.images;
 
-  canvas.drawImage(images[index], mouseDistance);
+  canvas.drawMainImage(images[index], mouseDistance);
   canvas.drawNextImage(images[nextIndex()], mouseDistance);
 };
 
 var animateTransition = function animateTransition() {
-  var counter = 0;
   var mouseDistance = state.current.mouseDistance;
-
 
   var direction = slideDirection();
 
+  var counter = 0;
   var timer = setInterval(function () {
     counter++;
-
     var increment = 10 * counter * direction;
     var newDistance = mouseDistance + increment;
-    state.setState({
-      mouseDistance: newDistance
-    });
 
+    state.setState({ mouseDistance: newDistance });
     drawImage();
 
-    if (Math.abs(newDistance) >= 800) {
+    if (Math.abs(newDistance) >= $canvas.width) {
       state.setState({ index: nextIndex() });
       stopDragging();
       drawImage();
@@ -4069,9 +4064,7 @@ var handleMove = function handleMove(event) {
     drawImage();
 
     if (shouldSwitchImage()) {
-      state.setState({
-        isDragging: false
-      });
+      state.setState({ isDragging: false });
       animateTransition();
     }
   }
@@ -10575,16 +10568,13 @@ module.exports = State;
 "use strict";
 
 
-var $canvas = document.getElementById('slider');
-var MAX_WIDHT = $canvas.width;
-var MAX_HEIGHT = $canvas.height;
-
-var getContext = function getContext() {
-  return document.getElementById('slider').getContext('2d');
-};
-
-function Canvas() {
+function Canvas(element) {
   var _this = this;
+
+  this.canvas = element;
+  this.maxWidth = element.width;
+  this.maxHeight = element.height;
+  this.context = this.canvas.getContext('2d');
 
   this.scalingFactor = function (original, computed) {
     return computed / original;
@@ -10598,8 +10588,8 @@ function Canvas() {
     var originalWidth = image.width;
     var originalHeight = image.height;
 
-    var xFactor = _this.scalingFactor(originalWidth, MAX_WIDHT);
-    var yFactor = _this.scalingFactor(originalHeight, MAX_HEIGHT);
+    var xFactor = _this.scalingFactor(originalWidth, _this.maxWidth);
+    var yFactor = _this.scalingFactor(originalHeight, _this.maxHeight);
 
     var largestFactor = Math.min(xFactor, yFactor);
 
@@ -10609,39 +10599,58 @@ function Canvas() {
     return { resizedWidth: resizedWidth, resizedHeight: resizedHeight };
   };
 
-  this.drawImage = function (image, mouseDragDistance) {
+  this.draw = function (image, _ref) {
+    var sx = _ref.sx,
+        sy = _ref.sy,
+        sw = _ref.sw,
+        sh = _ref.sh,
+        dx = _ref.dx,
+        dy = _ref.dy,
+        dw = _ref.dw,
+        dh = _ref.dh;
+
+    _this.context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+  };
+
+  this.dimensionsToDraw = function (image, mouseDragDistance) {
     var _scaleToFit = _this.scaleToFit(image),
         resizedWidth = _scaleToFit.resizedWidth,
         resizedHeight = _scaleToFit.resizedHeight;
 
-    var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance;
-    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+    return {
+      sx: 0,
+      sy: 0,
+      sw: image.width,
+      sh: image.height,
+      dx: _this.imageMargin(resizedWidth, _this.maxWidth) - mouseDragDistance,
+      dy: _this.imageMargin(resizedHeight, _this.maxHeight),
+      dw: resizedWidth,
+      dh: resizedHeight
+    };
+  };
 
-    getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT);
-    getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
+  this.drawMainImage = function (image, mouseDragDistance) {
+    _this.context.clearRect(0, 0, _this.maxWidth, _this.maxHeight);
+    _this.draw(image, _this.dimensionsToDraw(image, mouseDragDistance));
   };
 
   this.drawNextImage = function (image, mouseDragDistance) {
     if (mouseDragDistance === 0) return;
 
-    var _scaleToFit2 = _this.scaleToFit(image),
-        resizedWidth = _scaleToFit2.resizedWidth,
-        resizedHeight = _scaleToFit2.resizedHeight;
+    var startingPoint = (_this.maxWidth - mouseDragDistance) * -1;
+    var dimensions = _this.dimensionsToDraw(image, startingPoint);
 
-    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+    if (mouseDragDistance < 0) {
+      var sw = dimensions.sw,
+          dw = dimensions.dw;
 
-    if (mouseDragDistance > 0) {
-      var startingPoint = MAX_WIDHT - mouseDragDistance;
-      var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint;
+      var proportionToShow = sw * mouseDragDistance / dw;
 
-      getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
-    } else {
-      var _dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
-      var begining = image.width * mouseDragDistance / resizedWidth;
-      var sx = image.width - Math.abs(begining);
-
-      getContext().drawImage(image, sx, 0, image.width, image.height, 0, _dy, resizedWidth, resizedHeight);
+      dimensions.sx = sw - Math.abs(proportionToShow);
+      dimensions.dx = 0;
     }
+
+    _this.draw(image, dimensions);
   };
 }
 
