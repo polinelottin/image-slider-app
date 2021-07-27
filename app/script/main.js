@@ -3971,7 +3971,6 @@ var updateMouseDistance = function updateMouseDistance(currentPosition) {
 var slideDirection = function slideDirection() {
   var mouseDistance = state.current.mouseDistance;
 
-
   return mouseDistance / Math.abs(mouseDistance);
 };
 
@@ -3983,16 +3982,16 @@ var nextIndex = function nextIndex() {
 
   if (mouseDistance === 0) return index;
 
-  var images = gallery.images;
+  var totalImages = gallery.images.length;
 
   var newIndex = index + slideDirection();
 
-  if (newIndex === images.length) {
+  if (newIndex >= totalImages) {
     return 0;
   }
 
   if (newIndex < 0) {
-    return images.length - 1;
+    return totalImages - 1;
   }
 
   return newIndex;
@@ -4031,24 +4030,20 @@ var drawImage = function drawImage() {
 };
 
 var animateTransition = function animateTransition() {
-  var counter = 0;
   var mouseDistance = state.current.mouseDistance;
-
 
   var direction = slideDirection();
 
+  var counter = 0;
   var timer = setInterval(function () {
     counter++;
-
     var increment = 10 * counter * direction;
     var newDistance = mouseDistance + increment;
-    state.setState({
-      mouseDistance: newDistance
-    });
 
+    state.setState({ mouseDistance: newDistance });
     drawImage();
 
-    if (Math.abs(newDistance) >= 800) {
+    if (Math.abs(newDistance) >= $canvas.width) {
       state.setState({ index: nextIndex() });
       stopDragging();
       drawImage();
@@ -4069,9 +4064,7 @@ var handleMove = function handleMove(event) {
     drawImage();
 
     if (shouldSwitchImage()) {
-      state.setState({
-        isDragging: false
-      });
+      state.setState({ isDragging: false });
       animateTransition();
     }
   }
