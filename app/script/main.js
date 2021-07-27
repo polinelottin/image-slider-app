@@ -4026,7 +4026,7 @@ var drawImage = function drawImage() {
 
   var images = gallery.images;
 
-  canvas.drawImage(images[index], mouseDistance);
+  canvas.drawMainImage(images[index], mouseDistance);
   canvas.drawNextImage(images[nextIndex()], mouseDistance);
 };
 
@@ -10609,39 +10609,58 @@ function Canvas() {
     return { resizedWidth: resizedWidth, resizedHeight: resizedHeight };
   };
 
-  this.drawImage = function (image, mouseDragDistance) {
+  this.draw = function (image, _ref) {
+    var sx = _ref.sx,
+        sy = _ref.sy,
+        sw = _ref.sw,
+        sh = _ref.sh,
+        dx = _ref.dx,
+        dy = _ref.dy,
+        dw = _ref.dw,
+        dh = _ref.dh;
+
+    getContext().drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+  };
+
+  this.dimensionsToDraw = function (image, mouseDragDistance) {
     var _scaleToFit = _this.scaleToFit(image),
         resizedWidth = _scaleToFit.resizedWidth,
         resizedHeight = _scaleToFit.resizedHeight;
 
-    var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance;
-    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+    return {
+      sx: 0,
+      sy: 0,
+      sw: image.width,
+      sh: image.height,
+      dx: _this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance,
+      dy: _this.imageMargin(resizedHeight, MAX_HEIGHT),
+      dw: resizedWidth,
+      dh: resizedHeight
+    };
+  };
 
+  this.drawMainImage = function (image, mouseDragDistance) {
     getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT);
-    getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
+    _this.draw(image, _this.dimensionsToDraw(image, mouseDragDistance));
   };
 
   this.drawNextImage = function (image, mouseDragDistance) {
     if (mouseDragDistance === 0) return;
 
-    var _scaleToFit2 = _this.scaleToFit(image),
-        resizedWidth = _scaleToFit2.resizedWidth,
-        resizedHeight = _scaleToFit2.resizedHeight;
+    var startingPoint = (MAX_WIDHT - mouseDragDistance) * -1;
+    var dimensions = _this.dimensionsToDraw(image, startingPoint);
 
-    var dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
+    if (mouseDragDistance < 0) {
+      var sw = dimensions.sw,
+          dw = dimensions.dw;
 
-    if (mouseDragDistance > 0) {
-      var startingPoint = MAX_WIDHT - mouseDragDistance;
-      var dx = _this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint;
+      var proportionToShow = sw * mouseDragDistance / dw;
 
-      getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, resizedWidth, resizedHeight);
-    } else {
-      var _dy = _this.imageMargin(resizedHeight, MAX_HEIGHT);
-      var begining = image.width * mouseDragDistance / resizedWidth;
-      var sx = image.width - Math.abs(begining);
-
-      getContext().drawImage(image, sx, 0, image.width, image.height, 0, _dy, resizedWidth, resizedHeight);
+      dimensions.sx = sw - Math.abs(proportionToShow);
+      dimensions.dx = 0;
     }
+
+    _this.draw(image, dimensions);
   };
 }
 

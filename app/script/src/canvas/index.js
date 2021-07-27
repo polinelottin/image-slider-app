@@ -26,52 +26,48 @@ function Canvas() {
     return { resizedWidth, resizedHeight }
   }
 
-  this.drawImage = (image, mouseDragDistance) => {
-    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
-
-    const dx = this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance
-    const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
-
-    getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT)
+  this.draw = (image, { sx, sy, sw, sh, dx, dy, dw, dh }) => {
     getContext().drawImage(
       image,
-      0, 0,
-      image.width, image.height,
-      dx, dy,
-      resizedWidth, resizedHeight
+      sx, sy, sw, sh, dx, dy, dw, dh
     )
+  }
+
+  this.dimensionsToDraw = (image, mouseDragDistance) => {
+    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
+
+    return {
+      sx: 0,
+      sy: 0,
+      sw: image.width,
+      sh: image.height,
+      dx: this.imageMargin(resizedWidth, MAX_WIDHT) - mouseDragDistance,
+      dy: this.imageMargin(resizedHeight, MAX_HEIGHT),
+      dw: resizedWidth,
+      dh: resizedHeight
+    }
+  }
+
+  this.drawMainImage = (image, mouseDragDistance) => {
+    getContext().clearRect(0, 0, MAX_WIDHT, MAX_HEIGHT)
+    this.draw(image, this.dimensionsToDraw(image, mouseDragDistance))
   }
 
   this.drawNextImage = (image, mouseDragDistance) => {
     if (mouseDragDistance === 0) return
 
-    const { resizedWidth, resizedHeight } = this.scaleToFit(image)
-    const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
+    const startingPoint = (MAX_WIDHT - mouseDragDistance) * -1
+    const dimensions = this.dimensionsToDraw(image, startingPoint)
 
-    if (mouseDragDistance > 0) {
-      const startingPoint = MAX_WIDHT - mouseDragDistance
-      const dx = this.imageMargin(resizedWidth, MAX_WIDHT) + startingPoint
+    if (mouseDragDistance < 0) {
+      const { sw, dw } = dimensions
+      const proportionToShow = (sw * mouseDragDistance) / dw
 
-      getContext().drawImage(
-        image,
-        0, 0,
-        image.width, image.height,
-        dx, dy,
-        resizedWidth, resizedHeight
-      )
-    } else {
-      const dy = this.imageMargin(resizedHeight, MAX_HEIGHT)
-      const begining = (image.width * mouseDragDistance) / resizedWidth
-      const sx = image.width - Math.abs(begining)
-
-      getContext().drawImage(
-        image,
-        sx, 0,
-        image.width, image.height,
-        0, dy,
-        resizedWidth, resizedHeight
-      )
+      dimensions.sx = sw - Math.abs(proportionToShow)
+      dimensions.dx = 0
     }
+
+    this.draw(image, dimensions)
   }
 }
 

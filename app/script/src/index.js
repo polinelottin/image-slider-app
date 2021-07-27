@@ -80,7 +80,7 @@ const drawImage = () => {
   const { index, mouseDistance } = state.current
   const images = gallery.images
 
-  canvas.drawImage(images[index], mouseDistance)
+  canvas.drawMainImage(images[index], mouseDistance)
   canvas.drawNextImage(images[nextIndex()], mouseDistance)
 }
 
