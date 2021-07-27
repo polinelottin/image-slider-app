@@ -1,8 +1,16 @@
 import 'babel-polyfill'
 import '../vendors'
-import gallerySource from './gallerySource'
-import { state, setState } from './state'
-import dimensions from './canvasDimensions'
+
+const Gallery = require('./gallery')
+const State = require('./state')
+
+const gallery = new Gallery()
+const state = new State({
+  currentIndex: 0,
+  isDragging: false,
+  startX: 0,
+  currentMouseDistance: 0
+})
 
 const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
@@ -16,15 +24,54 @@ const getContext = () => document.getElementById('slider').getContext('2d')
 const updateCurrentMouseDistance = currentPosition => {
   const offsetX = BB.left
   const mx = parseInt(currentPosition - offsetX)
+  const { startX } = state.current
 
-  setState({
-    ...state,
-    currentMouseDistance: state.startX - mx
+  state.setState({
+    currentMouseDistance: startX - mx
   })
 }
 
-const getNextIndex = direction => {
-  const { currentIndex, images } = state
+const dimensions = {
+  maxHeight: HEIGHT,
+  maxWidth: WIDTH,
+  dWidth: 800,
+  dHeight: 600,
+  dx: 0,
+  dy: 0,
+  readDimensions: function(image) {
+    this.dWidth = image.width
+    this.dHeight = image.height
+    return this
+  },
+  largestProperty: function () {
+    return this.dHeight > this.dWidth ? 'height' : 'width'
+  },
+  scalingFactor: function(original, computed) {
+    return computed / original
+  },
+  imageMargin: function(maxSize, imageSize) {
+    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0
+  },
+  scaleToFit: function() {
+    const xFactor = this.scalingFactor(this.dWidth, this.maxWidth)
+    const yFactor = this.scalingFactor(this.dHeight, this.maxHeight)
+
+    const largestFactor = Math.min(xFactor, yFactor)
+
+    this.dWidth *= largestFactor
+    this.dHeight *= largestFactor
+
+    const { currentMouseDistance } = state.current
+    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - currentMouseDistance
+    this.dy = this.imageMargin(this.maxHeight, this.dHeight)
+  }
+}
+
+const nextIndex = () => {
+  const { currentIndex, currentMouseDistance } = state.current
+  const images = gallery.images
+
+  const direction = currentMouseDistance / Math.abs(currentMouseDistance)
   let newIndex = currentIndex + direction
 
   if (newIndex === images.length) {
@@ -39,7 +86,9 @@ const getNextIndex = direction => {
 }
 
 const selectAreaAndDraw = () => {
-  const { images, currentIndex, currentMouseDistance } = state
+  const { currentIndex, currentMouseDistance } = state.current
+  const { images } = gallery
+
   const image = images[currentIndex]
 
   dimensions.readDimensions(image, state).scaleToFit()
@@ -49,8 +98,7 @@ const selectAreaAndDraw = () => {
   getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight)
 
   if (currentMouseDistance !== 0) {
-    const nextIndex = getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
-    const nextImage = images[nextIndex]
+    const nextImage = images[nextIndex()]
 
     dimensions.readDimensions(nextImage, state).scaleToFit()
     const dww = WIDTH - currentMouseDistance
@@ -58,94 +106,69 @@ const selectAreaAndDraw = () => {
   }
 }
 
-const loadImages = async () => {
-  for (const source of gallerySource) {
-    const allowedImages = /^https:.*.jpg$/
+const startDragging = event => {
+  state.setState({
+    startX: event.layerX,
+    isDragging: true
+  })
+}
 
-    if (source.match(allowedImages)) {
-      const img = document.createElement('img')
+const stopDragging = () => {
+  state.setState({
+    isDragging: false,
+    currentMouseDistance: 0
+  })
+}
 
-      try {
-        img.src = source
-        await img.decode()
-
-        setState({
-          ...state,
-          images: [
-            ...state.images,
-            img
-          ]
-        })
-      } catch (e) {
-        console.log(e)
-      }
-    }
-  }
+const shouldSwitchImage = () => {
+  const { currentMouseDistance } = state.current
+  return Math.abs(currentMouseDistance) > MIN_TO_SWITCH
 }
 
 const handleMove = event => {
   event.preventDefault()
   event.stopPropagation()
 
-  const { isDragging, currentMouseDistance } = state
+  const { isDragging } = state.current
 
   if (isDragging) {
     updateCurrentMouseDistance(event.clientX)
     selectAreaAndDraw()
 
-    if (Math.abs(currentMouseDistance) > MIN_TO_SWITCH) {
-      setState({
-        ...state,
-        currentIndex: getNextIndex(currentMouseDistance / Math.abs(currentMouseDistance))
+    if (shouldSwitchImage()) {
+      state.setState({
+        currentIndex: nextIndex()
       })
 
-      stopDrag()
+      stopDragging()
       selectAreaAndDraw()
     }
   }
 }
 
-const startDrag = event => {
-  setState({
-    ...state,
-    startX: event.layerX,
-    isDragging: true
-  })
-}
-
-const stopDrag = () => {
-  setState({
-    ...state,
-    isDragging: false,
-    currentMouseDistance: 0
-  })
-}
-
 const addListeners = () => {
   $canvas.onmousemove = handleMove
   $canvas.ontouchmove = handleMove
-  $canvas.onmousedown = startDrag
-  $canvas.ontouchstart = startDrag
-  $canvas.onmouseup = stopDrag
-  $canvas.ontouchend = stopDrag
+
+  $canvas.onmousedown = startDragging
+  $canvas.ontouchstart = startDragging
+
+  $canvas.onmouseup = stopDragging
+  $canvas.ontouchend = stopDragging
+}
+
+const setLoading = loading => {
+  $loading.style.display = loading ? 'block' : 'none'
 }
 
 const start = async () => {
-  $loading.style.display = 'block'
-
+  setLoading(true)
   addListeners()
-  setState({
-    currentIndex: 0,
-    images: [],
-    isDragging: false,
-    startX: 0,
-    currentMouseDistance: 0
-  })
 
-  await loadImages()
+  await gallery.loadImages()
 
   selectAreaAndDraw()
-  $loading.style.display = 'none'
+  setLoading(false)
 }
 
 window.onload = function () {
