@@ -3940,121 +3940,61 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 var Gallery = __webpack_require__(335);
 var State = __webpack_require__(337);
+var Canvas = __webpack_require__(338);
 
-var gallery = new Gallery();
 var state = new State({
-  currentIndex: 0,
-  isDragging: false,
+  index: 0,
   startX: 0,
-  currentMouseDistance: 0
+  mouseDistance: 0,
+  isDragging: false
 });
 
 var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
 var BB = $canvas.getBoundingClientRect();
-var WIDTH = $canvas.width;
-var HEIGHT = $canvas.height;
-var MIN_TO_SWITCH = BB.width * 0.5;
+var MIN_TO_SWITCH = BB.width * 0.2;
 
-var getContext = function getContext() {
-  return document.getElementById('slider').getContext('2d');
-};
+var gallery = new Gallery();
+var canvas = new Canvas($canvas);
 
-var updateCurrentMouseDistance = function updateCurrentMouseDistance(currentPosition) {
+var updateMouseDistance = function updateMouseDistance(currentPosition) {
   var offsetX = BB.left;
   var mx = parseInt(currentPosition - offsetX);
   var startX = state.current.startX;
 
 
   state.setState({
-    currentMouseDistance: startX - mx
+    mouseDistance: startX - mx
   });
 };
 
-var dimensions = {
-  maxHeight: HEIGHT,
-  maxWidth: WIDTH,
-  dWidth: 800,
-  dHeight: 600,
-  dx: 0,
-  dy: 0,
-  readDimensions: function readDimensions(image) {
-    this.dWidth = image.width;
-    this.dHeight = image.height;
-    return this;
-  },
-  largestProperty: function largestProperty() {
-    return this.dHeight > this.dWidth ? 'height' : 'width';
-  },
-  scalingFactor: function scalingFactor(original, computed) {
-    return computed / original;
-  },
-  imageMargin: function imageMargin(maxSize, imageSize) {
-    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
-  },
-  scaleToFit: function scaleToFit() {
-    var xFactor = this.scalingFactor(this.dWidth, this.maxWidth);
-    var yFactor = this.scalingFactor(this.dHeight, this.maxHeight);
+var slideDirection = function slideDirection() {
+  var mouseDistance = state.current.mouseDistance;
 
-    var largestFactor = Math.min(xFactor, yFactor);
-
-    this.dWidth *= largestFactor;
-    this.dHeight *= largestFactor;
-
-    var currentMouseDistance = state.current.currentMouseDistance;
-
-    this.dx = this.imageMargin(this.maxWidth, this.dWidth) - currentMouseDistance;
-    this.dy = this.imageMargin(this.maxHeight, this.dHeight);
-  }
+  return mouseDistance / Math.abs(mouseDistance);
 };
 
 var nextIndex = function nextIndex() {
   var _state$current = state.current,
-      currentIndex = _state$current.currentIndex,
-      currentMouseDistance = _state$current.currentMouseDistance;
+      index = _state$current.index,
+      mouseDistance = _state$current.mouseDistance;
 
-  var images = gallery.images;
 
-  var direction = currentMouseDistance / Math.abs(currentMouseDistance);
-  var newIndex = currentIndex + direction;
+  if (mouseDistance === 0) return index;
 
-  if (newIndex === images.length) {
+  var totalImages = gallery.images.length;
+
+  var newIndex = index + slideDirection();
+
+  if (newIndex >= totalImages) {
     return 0;
   }
 
   if (newIndex < 0) {
-    return images.length - 1;
+    return totalImages - 1;
   }
 
   return newIndex;
-};
-
-var selectAreaAndDraw = function selectAreaAndDraw() {
-  var _state$current2 = state.current,
-      currentIndex = _state$current2.currentIndex,
-      currentMouseDistance = _state$current2.currentMouseDistance;
-  var images = gallery.images;
-
-
-  var image = images[currentIndex];
-
-  dimensions.readDimensions(image, state).scaleToFit();
-  var dx = dimensions.dx,
-      dy = dimensions.dy,
-      dWidth = dimensions.dWidth,
-      dHeight = dimensions.dHeight;
-
-
-  getContext().clearRect(0, 0, WIDTH, HEIGHT);
-  getContext().drawImage(image, 0, 0, image.width, image.height, dx, dy, dWidth, dHeight);
-
-  if (currentMouseDistance !== 0) {
-    var nextImage = images[nextIndex()];
-
-    dimensions.readDimensions(nextImage, state).scaleToFit();
-    var dww = WIDTH - currentMouseDistance;
-    getContext().drawImage(nextImage, 0, 0, nextImage.width, nextImage.height, dww, dy, dWidth, dHeight);
-  }
 };
 
 var startDragging = function startDragging(event) {
@@ -4067,14 +4007,49 @@ var startDragging = function startDragging(event) {
 var stopDragging = function stopDragging() {
   state.setState({
     isDragging: false,
-    currentMouseDistance: 0
+    mouseDistance: 0
   });
+  drawImage();
 };
 
 var shouldSwitchImage = function shouldSwitchImage() {
-  var currentMouseDistance = state.current.currentMouseDistance;
+  var mouseDistance = state.current.mouseDistance;
 
-  return Math.abs(currentMouseDistance) > MIN_TO_SWITCH;
+  return Math.abs(mouseDistance) > MIN_TO_SWITCH;
+};
+
+var drawImage = function drawImage() {
+  var _state$current2 = state.current,
+      index = _state$current2.index,
+      mouseDistance = _state$current2.mouseDistance;
+
+  var images = gallery.images;
+
+  canvas.drawMainImage(images[index], mouseDistance);
+  canvas.drawNextImage(images[nextIndex()], mouseDistance);
+};
+
+var animateTransition = function animateTransition() {
+  var mouseDistance = state.current.mouseDistance;
+
+  var direction = slideDirection();
+
+  var counter = 0;
+  var timer = setInterval(function () {
+    counter++;
+    var increment = 10 * counter * direction;
+    var newDistance = mouseDistance + increment;
+
+    state.setState({ mouseDistance: newDistance });
+    drawImage();
+
+    if (Math.abs(newDistance) >= $canvas.width) {
+      state.setState({ index: nextIndex() });
+      stopDragging();
+      drawImage();
+      clearInterval(timer);
+    }
+  }, 1);
 };
 
 var handleMove = function handleMove(event) {
@@ -4085,16 +4060,12 @@ var handleMove = function handleMove(event) {
 
 
   if (isDragging) {
-    updateCurrentMouseDistance(event.clientX);
-    selectAreaAndDraw();
+    updateMouseDistance(event.clientX);
+    drawImage();
 
     if (shouldSwitchImage()) {
-      state.setState({
-        currentIndex: nextIndex()
-      });
-
-      stopDragging();
-      selectAreaAndDraw();
+      state.setState({ isDragging: false });
+      animateTransition();
     }
   }
 };
@@ -4128,7 +4099,7 @@ var start = function () {
 
           case 4:
 
-            selectAreaAndDraw();
+            drawImage();
             setLoading(false);
 
           case 6:
@@ -4145,7 +4116,7 @@ var start = function () {
 }();
 
 window.onload = function () {
-  start();
+  return start();
 };
 
 /***/ }),
@@ -10589,6 +10560,114 @@ function State(initState) {
 }
 
 module.exports = State;
+
+/***/ }),
+/* 338 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function Canvas(element) {
+  var _this = this;
+
+  this.canvas = element;
+  this.maxWidth = element.width;
+  this.maxHeight = element.height;
+  this.context = this.canvas.getContext('2d');
+
+  this.scalingFactor = function (original, computed) {
+    return computed / original;
+  };
+
+  this.imageMargin = function (imageSize, maxSize) {
+    return imageSize < maxSize ? (maxSize - imageSize) * 0.5 : 0;
+  };
+
+  this.scaleToFit = function (image) {
+    var originalWidth = image.width;
+    var originalHeight = image.height;
+
+    var xFactor = _this.scalingFactor(originalWidth, _this.maxWidth);
+    var yFactor = _this.scalingFactor(originalHeight, _this.maxHeight);
+
+    var largestFactor = Math.min(xFactor, yFactor);
+
+    var resizedWidth = largestFactor * originalWidth;
+    var resizedHeight = largestFactor * originalHeight;
+
+    return { resizedWidth: resizedWidth, resizedHeight: resizedHeight };
+  };
+
+  this.draw = function (image, _ref) {
+    var sx = _ref.sx,
+        sy = _ref.sy,
+        sw = _ref.sw,
+        sh = _ref.sh,
+        dx = _ref.dx,
+        dy = _ref.dy,
+        dw = _ref.dw,
+        dh = _ref.dh;
+
+    _this.context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
+  };
+
+  this.dimensionsToDraw = function (image) {
+    var _scaleToFit = _this.scaleToFit(image),
+        resizedWidth = _scaleToFit.resizedWidth,
+        resizedHeight = _scaleToFit.resizedHeight;
+
+    return {
+      sx: 0,
+      sy: 0,
+      sw: image.width,
+      sh: image.height,
+      dx: _this.imageMargin(resizedWidth, _this.maxWidth),
+      dy: _this.imageMargin(resizedHeight, _this.maxHeight),
+      dw: resizedWidth,
+      dh: resizedHeight
+    };
+  };
+
+  this.drawMainImage = function (image, mouseDragDistance) {
+    _this.context.clearRect(0, 0, _this.maxWidth, _this.maxHeight);
+    var dimensions = _this.dimensionsToDraw(image);
+    dimensions.dx = dimensions.dx - mouseDragDistance;
+    _this.draw(image, dimensions);
+  };
+
+  this.drawNextImage = function (image, mouseDragDistance) {
+    if (mouseDragDistance === 0) return;
+
+    if (mouseDragDistance > 0) {
+      var dimensions = _this.dimensionsToDraw(image);
+      dimensions.dx = dimensions.dx + _this.maxWidth - mouseDragDistance;
+
+      _this.draw(image, dimensions);
+      return;
+    }
+
+    if (mouseDragDistance < 0) {
+      var _dimensions = _this.dimensionsToDraw(image);
+      var dx = _dimensions.dx,
+          sw = _dimensions.sw,
+          dw = _dimensions.dw;
+
+
+      if (Math.abs(mouseDragDistance) > dx) {
+        var diff = Math.abs(mouseDragDistance) - dx;
+        var proportionToShow = sw * diff / dw;
+
+        _dimensions.sx = sw - Math.abs(proportionToShow);
+        _dimensions.dx = 0;
+
+        _this.draw(image, _dimensions);
+      }
+    }
+  };
+}
+
+module.exports = Canvas;
 
 /***/ })
 /******/ ]);
