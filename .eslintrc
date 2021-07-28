@@ -1,5 +1,7 @@
 extends:
   - standard
+env:
+  jest/globals: true
 parser: babel-eslint
 rules:
   object-curly-spacing: [ error, always ]
