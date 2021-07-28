@@ -15,7 +15,7 @@ const state = new State({
 const $loading = document.getElementById('loading')
 const $canvas = document.getElementById('slider')
 const BB = $canvas.getBoundingClientRect()
-const MIN_TO_SWITCH = BB.width * 0.5
+const MIN_TO_SWITCH = BB.width * 0.2
 
 const gallery = new Gallery()
 const canvas = new Canvas($canvas)
