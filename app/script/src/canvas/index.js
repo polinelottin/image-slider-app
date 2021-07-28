@@ -32,7 +32,7 @@ function Canvas(element) {
     )
   }
 
-  this.dimensionsToDraw = (image, mouseDragDistance) => {
+  this.dimensionsToDraw = (image) => {
     const { resizedWidth, resizedHeight } = this.scaleToFit(image)
 
     return {
@@ -40,7 +40,7 @@ function Canvas(element) {
       sy: 0,
       sw: image.width,
       sh: image.height,
-      dx: this.imageMargin(resizedWidth, this.maxWidth) - mouseDragDistance,
+      dx: this.imageMargin(resizedWidth, this.maxWidth),
       dy: this.imageMargin(resizedHeight, this.maxHeight),
       dw: resizedWidth,
       dh: resizedHeight
@@ -49,24 +49,36 @@ function Canvas(element) {
 
   this.drawMainImage = (image, mouseDragDistance) => {
     this.context.clearRect(0, 0, this.maxWidth, this.maxHeight)
-    this.draw(image, this.dimensionsToDraw(image, mouseDragDistance))
+    const dimensions = this.dimensionsToDraw(image)
+    dimensions.dx = dimensions.dx - mouseDragDistance
+    this.draw(image, dimensions)
   }
 
   this.drawNextImage = (image, mouseDragDistance) => {
     if (mouseDragDistance === 0) return
 
-    const startingPoint = (this.maxWidth - mouseDragDistance) * -1
-    const dimensions = this.dimensionsToDraw(image, startingPoint)
+    if (mouseDragDistance > 0) {
+      const dimensions = this.dimensionsToDraw(image)
+      dimensions.dx = dimensions.dx + this.maxWidth - mouseDragDistance
 
-    if (mouseDragDistance < 0) {
-      const { sw, dw } = dimensions
-      const proportionToShow = (sw * mouseDragDistance) / dw
-
-      dimensions.sx = sw - Math.abs(proportionToShow)
-      dimensions.dx = 0
+      this.draw(image, dimensions)
+      return
     }
 
-    this.draw(image, dimensions)
+    if (mouseDragDistance < 0) {
+      const dimensions = this.dimensionsToDraw(image)
+      const { dx, sw, dw } = dimensions
+
+      if (Math.abs(mouseDragDistance) > dx) {
+        const diff = Math.abs(mouseDragDistance) - dx
+        const proportionToShow = (sw * diff) / dw
+
+        dimensions.sx = sw - Math.abs(proportionToShow)
+        dimensions.dx = 0
+
+        this.draw(image, dimensions)
+      }
+    }
   }
 }
 

@@ -3952,7 +3952,7 @@ var state = new State({
 var $loading = document.getElementById('loading');
 var $canvas = document.getElementById('slider');
 var BB = $canvas.getBoundingClientRect();
-var MIN_TO_SWITCH = BB.width * 0.5;
+var MIN_TO_SWITCH = BB.width * 0.2;
 
 var gallery = new Gallery();
 var canvas = new Canvas($canvas);
@@ -10612,7 +10612,7 @@ function Canvas(element) {
     _this.context.drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh);
   };
 
-  this.dimensionsToDraw = function (image, mouseDragDistance) {
+  this.dimensionsToDraw = function (image) {
     var _scaleToFit = _this.scaleToFit(image),
         resizedWidth = _scaleToFit.resizedWidth,
         resizedHeight = _scaleToFit.resizedHeight;
@@ -10622,7 +10622,7 @@ function Canvas(element) {
       sy: 0,
       sw: image.width,
       sh: image.height,
-      dx: _this.imageMargin(resizedWidth, _this.maxWidth) - mouseDragDistance,
+      dx: _this.imageMargin(resizedWidth, _this.maxWidth),
       dy: _this.imageMargin(resizedHeight, _this.maxHeight),
       dw: resizedWidth,
       dh: resizedHeight
@@ -10631,26 +10631,39 @@ function Canvas(element) {
 
   this.drawMainImage = function (image, mouseDragDistance) {
     _this.context.clearRect(0, 0, _this.maxWidth, _this.maxHeight);
-    _this.draw(image, _this.dimensionsToDraw(image, mouseDragDistance));
+    var dimensions = _this.dimensionsToDraw(image);
+    dimensions.dx = dimensions.dx - mouseDragDistance;
+    _this.draw(image, dimensions);
   };
 
   this.drawNextImage = function (image, mouseDragDistance) {
     if (mouseDragDistance === 0) return;
 
-    var startingPoint = (_this.maxWidth - mouseDragDistance) * -1;
-    var dimensions = _this.dimensionsToDraw(image, startingPoint);
+    if (mouseDragDistance > 0) {
+      var dimensions = _this.dimensionsToDraw(image);
+      dimensions.dx = dimensions.dx + _this.maxWidth - mouseDragDistance;
 
-    if (mouseDragDistance < 0) {
-      var sw = dimensions.sw,
-          dw = dimensions.dw;
-
-      var proportionToShow = sw * mouseDragDistance / dw;
-
-      dimensions.sx = sw - Math.abs(proportionToShow);
-      dimensions.dx = 0;
+      _this.draw(image, dimensions);
+      return;
     }
 
-    _this.draw(image, dimensions);
+    if (mouseDragDistance < 0) {
+      var _dimensions = _this.dimensionsToDraw(image);
+      var dx = _dimensions.dx,
+          sw = _dimensions.sw,
+          dw = _dimensions.dw;
+
+
+      if (Math.abs(mouseDragDistance) > dx) {
+        var diff = Math.abs(mouseDragDistance) - dx;
+        var proportionToShow = sw * diff / dw;
+
+        _dimensions.sx = sw - Math.abs(proportionToShow);
+        _dimensions.dx = 0;
+
+        _this.draw(image, _dimensions);
+      }
+    }
   };
 }
 
